@@ -14,7 +14,189 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          created_at: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          role: string | null
+          survey_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          phone: string
+          role?: string | null
+          survey_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string
+          role?: string | null
+          survey_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          first_name: string
+          gender: Database["public"]["Enums"]["gender"]
+          id: string
+          last_name: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          first_name: string
+          gender?: Database["public"]["Enums"]["gender"]
+          id: string
+          last_name: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          gender?: Database["public"]["Enums"]["gender"]
+          id?: string
+          last_name?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      survey_history: {
+        Row: {
+          created_at: string | null
+          field_name: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          survey_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          field_name: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          survey_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          field_name?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          survey_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_history_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surveys: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          id: string
+          is_archived: boolean | null
+          status: Database["public"]["Enums"]["survey_status"]
+          survey_date: string
+          system_description: string | null
+          system_name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          id?: string
+          is_archived?: boolean | null
+          status?: Database["public"]["Enums"]["survey_status"]
+          survey_date: string
+          system_description?: string | null
+          system_name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          is_archived?: boolean | null
+          status?: Database["public"]["Enums"]["survey_status"]
+          survey_date?: string
+          system_description?: string | null
+          system_name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surveys_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +205,16 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      gender: "male" | "female"
+      survey_status:
+        | "received"
+        | "email_sent_to_admin"
+        | "meeting_scheduled"
+        | "in_writing"
+        | "completion_questions_with_admin"
+        | "chen_review"
+        | "completed"
+      user_role: "surveyor" | "manager" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +341,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      gender: ["male", "female"],
+      survey_status: [
+        "received",
+        "email_sent_to_admin",
+        "meeting_scheduled",
+        "in_writing",
+        "completion_questions_with_admin",
+        "chen_review",
+        "completed",
+      ],
+      user_role: ["surveyor", "manager", "admin"],
+    },
   },
 } as const
