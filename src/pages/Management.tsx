@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, User, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { createAdminUser } from "@/utils/createAdminUser";
 
 interface Client {
   id: string;
@@ -190,6 +191,35 @@ const Management = () => {
                 ))}
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* System Setup */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              הגדרות מערכת
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  const result = await createAdminUser();
+                  toast({
+                    title: result.success ? "הצלחה" : "שגיאה",
+                    description: result.message,
+                    variant: result.success ? "default" : "destructive",
+                  });
+                }}
+                className="w-full justify-start"
+              >
+                <User className="h-4 w-4 mr-2" />
+                צור משתמש אדמין בסיסי
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
