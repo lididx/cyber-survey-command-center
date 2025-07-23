@@ -16,7 +16,6 @@ const Auth = () => {
     password: "",
     firstName: "",
     lastName: "",
-    role: "surveyor" as "surveyor" | "manager" | "admin",
     gender: "male" as "male" | "female"
   });
   
@@ -53,7 +52,6 @@ const Auth = () => {
             data: {
               first_name: formData.firstName,
               last_name: formData.lastName,
-              role: formData.role,
               gender: formData.gender
             }
           }
@@ -125,19 +123,6 @@ const Auth = () => {
                       dir="rtl"
                     />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">תפקיד</Label>
-                  <Select value={formData.role} onValueChange={(value: "surveyor" | "manager" | "admin") => setFormData({ ...formData, role: value })}>
-                    <SelectTrigger dir="rtl">
-                      <SelectValue placeholder="בחר תפקיד" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="surveyor">סוקר/ת</SelectItem>
-                      <SelectItem value="manager">מנהל/ת</SelectItem>
-                      <SelectItem value="admin">מנהל מערכת</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="gender">מין</Label>
