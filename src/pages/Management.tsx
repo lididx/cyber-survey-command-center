@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, User, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createAdminUser } from "@/utils/createAdminUser";
+import { createAdminUserManually } from "@/utils/createAdminUserManually";
 
 interface Client {
   id: string;
@@ -207,7 +207,7 @@ const Management = () => {
               <Button
                 variant="outline"
                 onClick={async () => {
-                  const result = await createAdminUser();
+                  const result = await createAdminUserManually();
                   toast({
                     title: result.success ? "הצלחה" : "שגיאה",
                     description: result.message,
