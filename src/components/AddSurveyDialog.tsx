@@ -123,29 +123,27 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
 
       if (surveyError) throw surveyError;
 
-      // Create contacts - at least one contact is required
+      // Create contacts - only if they have at least first name
       const validContacts = contacts.filter(contact => 
-        contact.firstName.trim() && contact.lastName.trim() && contact.email.trim() && contact.phone.trim()
+        contact.firstName.trim() || contact.lastName.trim() || contact.email.trim() || contact.phone.trim()
       );
 
-      if (validContacts.length === 0) {
-        throw new Error("נדרש לפחות איש קשר אחד עם כל הפרטים");
+      if (validContacts.length > 0) {
+        const contactsData = validContacts.map(contact => ({
+          survey_id: surveyData.id,
+          first_name: contact.firstName,
+          last_name: contact.lastName,
+          email: contact.email,
+          phone: contact.phone,
+          role: contact.role
+        }));
+
+        const { error: contactsError } = await supabase
+          .from("contacts")
+          .insert(contactsData);
+
+        if (contactsError) throw contactsError;
       }
-
-      const contactsData = validContacts.map(contact => ({
-        survey_id: surveyData.id,
-        first_name: contact.firstName,
-        last_name: contact.lastName,
-        email: contact.email,
-        phone: contact.phone,
-        role: contact.role
-      }));
-
-      const { error: contactsError } = await supabase
-        .from("contacts")
-        .insert(contactsData);
-
-      if (contactsError) throw contactsError;
 
       toast({
         title: "סקר נוסף בהצלחה",
@@ -226,24 +224,22 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="surveyDate">תאריך קביעת הסקר *</Label>
+              <Label htmlFor="surveyDate">תאריך קביעת הסקר</Label>
               <Input
                 id="surveyDate"
                 type="date"
                 value={formData.surveyDate}
                 onChange={(e) => setFormData({ ...formData, surveyDate: e.target.value })}
-                required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="receivedDate">תאריך קבלת הסקר *</Label>
+              <Label htmlFor="receivedDate">תאריך קבלת הסקר</Label>
               <Input
                 id="receivedDate"
                 type="date"
                 value={formData.receivedDate}
                 onChange={(e) => setFormData({ ...formData, receivedDate: e.target.value })}
-                required
               />
             </div>
 
@@ -307,42 +303,38 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>שם פרטי *</Label>
+                      <Label>שם פרטי</Label>
                       <Input
                         value={contact.firstName}
                         onChange={(e) => updateContact(index, "firstName", e.target.value)}
-                        required
                         dir="rtl"
                       />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>שם משפחה *</Label>
+                      <Label>שם משפחה</Label>
                       <Input
                         value={contact.lastName}
                         onChange={(e) => updateContact(index, "lastName", e.target.value)}
-                        required
                         dir="rtl"
                       />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>כתובת מייל *</Label>
+                      <Label>כתובת מייל</Label>
                       <Input
                         type="email"
                         value={contact.email}
                         onChange={(e) => updateContact(index, "email", e.target.value)}
-                        required
                         dir="rtl"
                       />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>מספר טלפון *</Label>
+                      <Label>מספר טלפון</Label>
                       <Input
                         value={contact.phone}
                         onChange={(e) => updateContact(index, "phone", e.target.value)}
-                        required
                         dir="rtl"
                       />
                     </div>
