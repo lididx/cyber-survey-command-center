@@ -15,6 +15,7 @@ interface Survey {
   system_name: string;
   system_description: string;
   survey_date: string;
+  received_date: string;
   status: string;
   client_id: string;
   clients: {
@@ -241,7 +242,7 @@ const Dashboard = () => {
                       
                       return (
                         <div key={survey.id} className="border rounded-lg p-4 space-y-3">
-                          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
+                          <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-center">
                             <div className="font-medium">{survey.system_name}</div>
                             
                             <div>
@@ -263,7 +264,13 @@ const Dashboard = () => {
                             </div>
                             
                             <div className="text-sm text-muted-foreground">
+                              <div className="font-medium">תאריך הסקר</div>
                               {new Date(survey.survey_date).toLocaleDateString("he-IL")}
+                            </div>
+                            
+                            <div className="text-sm text-muted-foreground">
+                              <div className="font-medium">תאריך קבלה</div>
+                              {survey.received_date ? new Date(survey.received_date).toLocaleDateString("he-IL") : "לא צוין"}
                             </div>
                             
                             <div className="text-sm">

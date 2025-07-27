@@ -47,6 +47,7 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
     clientId: "",
     systemDescription: "",
     surveyDate: "",
+    receivedDate: "",
     status: "received" as const
   });
   const [contacts, setContacts] = useState<Contact[]>([
@@ -114,6 +115,7 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
           system_name: formData.systemName,
           system_description: formData.systemDescription,
           survey_date: formData.surveyDate,
+          received_date: formData.receivedDate,
           status: formData.status
         })
         .select()
@@ -121,27 +123,29 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
 
       if (surveyError) throw surveyError;
 
-      // Create contacts
+      // Create contacts - at least one contact is required
       const validContacts = contacts.filter(contact => 
         contact.firstName.trim() && contact.lastName.trim() && contact.email.trim() && contact.phone.trim()
       );
 
-      if (validContacts.length > 0) {
-        const contactsData = validContacts.map(contact => ({
-          survey_id: surveyData.id,
-          first_name: contact.firstName,
-          last_name: contact.lastName,
-          email: contact.email,
-          phone: contact.phone,
-          role: contact.role
-        }));
-
-        const { error: contactsError } = await supabase
-          .from("contacts")
-          .insert(contactsData);
-
-        if (contactsError) throw contactsError;
+      if (validContacts.length === 0) {
+        throw new Error("נדרש לפחות איש קשר אחד עם כל הפרטים");
       }
+
+      const contactsData = validContacts.map(contact => ({
+        survey_id: surveyData.id,
+        first_name: contact.firstName,
+        last_name: contact.lastName,
+        email: contact.email,
+        phone: contact.phone,
+        role: contact.role
+      }));
+
+      const { error: contactsError } = await supabase
+        .from("contacts")
+        .insert(contactsData);
+
+      if (contactsError) throw contactsError;
 
       toast({
         title: "סקר נוסף בהצלחה",
@@ -154,6 +158,7 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
         clientId: "",
         systemDescription: "",
         surveyDate: "",
+        receivedDate: "",
         status: "received"
       });
       setContacts([{ firstName: "", lastName: "", email: "", phone: "", role: "" }]);
@@ -227,6 +232,17 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
                 type="date"
                 value={formData.surveyDate}
                 onChange={(e) => setFormData({ ...formData, surveyDate: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="receivedDate">תאריך קבלת הסקר *</Label>
+              <Input
+                id="receivedDate"
+                type="date"
+                value={formData.receivedDate}
+                onChange={(e) => setFormData({ ...formData, receivedDate: e.target.value })}
                 required
               />
             </div>
