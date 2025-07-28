@@ -12,7 +12,6 @@ import SurveyHistoryDialog from "@/components/SurveyHistoryDialog";
 import EmailTemplateDialog from "@/components/EmailTemplateDialog";
 import EditSurveyDialog from "@/components/EditSurveyDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
 interface Survey {
   id: string;
   system_name: string;
@@ -33,10 +32,13 @@ interface Survey {
     role: string;
   }>;
 }
-
 const Dashboard = () => {
-  const { profile } = useAuth();
-  const { toast } = useToast();
+  const {
+    profile
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -45,7 +47,6 @@ const Dashboard = () => {
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
-
   const statusLabels: Record<string, string> = {
     received: "התקבל",
     email_sent_to_admin: "נשלח מייל תיאום למנהל המערכת",
@@ -55,120 +56,105 @@ const Dashboard = () => {
     chen_review: "בבקרה של חן",
     completed: "הסתיים"
   };
-
   const statusOptions = Object.entries(statusLabels).map(([value, label]) => ({
     value,
     label
   }));
-
   const fetchSurveys = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("surveys")
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from("surveys").select(`
           *,
           clients (name),
           contacts (*)
-        `)
-        .eq("is_archived", false)
-        .order("created_at", { ascending: false });
-
+        `).eq("is_archived", false).order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
       setSurveys(data || []);
     } catch (error: any) {
       toast({
         title: "שגיאה",
         description: "לא ניתן לטעון את הסקרים",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const updateSurveyStatus = async (surveyId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from("surveys")
-        .update({ status: newStatus as any })
-        .eq("id", surveyId);
-
+      const {
+        error
+      } = await supabase.from("surveys").update({
+        status: newStatus as any
+      }).eq("id", surveyId);
       if (error) throw error;
-
-      setSurveys(prev => prev.map(survey => 
-        survey.id === surveyId ? { ...survey, status: newStatus } : survey
-      ));
-
+      setSurveys(prev => prev.map(survey => survey.id === surveyId ? {
+        ...survey,
+        status: newStatus
+      } : survey));
       toast({
         title: "הסטטוס עודכן בהצלחה",
-        description: `הסטטוס עודכן ל: ${statusLabels[newStatus as keyof typeof statusLabels]}`,
+        description: `הסטטוס עודכן ל: ${statusLabels[newStatus as keyof typeof statusLabels]}`
       });
     } catch (error: any) {
       toast({
         title: "שגיאה",
         description: "לא ניתן לעדכן את הסטטוס",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const archiveSurvey = async (surveyId: string) => {
     try {
-      const { error } = await supabase
-        .from("surveys")
-        .update({ is_archived: true })
-        .eq("id", surveyId);
-
+      const {
+        error
+      } = await supabase.from("surveys").update({
+        is_archived: true
+      }).eq("id", surveyId);
       if (error) throw error;
-
       setSurveys(prev => prev.filter(survey => survey.id !== surveyId));
-
       toast({
         title: "הסקר הועבר לארכיון",
-        description: "הסקר הועבר בהצלחה לארכיון",
+        description: "הסקר הועבר בהצלחה לארכיון"
       });
     } catch (error: any) {
       toast({
         title: "שגיאה",
         description: "לא ניתן להעביר לארכיון",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const deleteSurvey = async (surveyId: string) => {
     if (!confirm("האם אתה בטוח שברצונך למחוק את הסקר? פעולה זו לא ניתנת לביטול.")) {
       return;
     }
-
     try {
-      const { error } = await supabase
-        .from("surveys")
-        .delete()
-        .eq("id", surveyId);
-
+      const {
+        error
+      } = await supabase.from("surveys").delete().eq("id", surveyId);
       if (error) throw error;
-
       setSurveys(prev => prev.filter(survey => survey.id !== surveyId));
-
       toast({
         title: "הסקר נמחק",
-        description: "הסקר נמחק בהצלחה מהמערכת",
+        description: "הסקר נמחק בהצלחה מהמערכת"
       });
     } catch (error: any) {
       toast({
         title: "שגיאה",
         description: "לא ניתן למחוק את הסקר",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   useEffect(() => {
     fetchSurveys();
   }, []);
-
   const groupedSurveys = surveys.reduce((acc, survey) => {
     const clientName = survey.clients.name;
     if (!acc[clientName]) {
@@ -177,7 +163,6 @@ const Dashboard = () => {
     acc[clientName].push(survey);
     return acc;
   }, {} as Record<string, Survey[]>);
-
   const toggleClientExpansion = (clientName: string) => {
     const newExpanded = new Set(expandedClients);
     if (newExpanded.has(clientName)) {
@@ -187,19 +172,14 @@ const Dashboard = () => {
     }
     setExpandedClients(newExpanded);
   };
-
   if (loading) {
-    return (
-      <Layout>
+    return <Layout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
         </div>
-      </Layout>
-    );
+      </Layout>;
   }
-
-  return (
-    <Layout>
+  return <Layout>
       <div className="space-y-6" dir="rtl">
         <div className="flex justify-between items-center">
           <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
@@ -209,8 +189,7 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-foreground">דשבורד סקרים</h1>
         </div>
 
-        {Object.keys(groupedSurveys).length === 0 ? (
-          <Card>
+        {Object.keys(groupedSurveys).length === 0 ? <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <p className="text-muted-foreground text-lg mb-4">אין סקרים פתוחים כרגע</p>
               <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
@@ -218,22 +197,12 @@ const Dashboard = () => {
                 הוסף סקר ראשון
               </Button>
             </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {Object.entries(groupedSurveys).map(([clientName, clientSurveys]) => (
-              <Card key={clientName}>
-                <CardHeader 
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => toggleClientExpansion(clientName)}
-                >
+          </Card> : <div className="space-y-4">
+            {Object.entries(groupedSurveys).map(([clientName, clientSurveys]) => <Card key={clientName}>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleClientExpansion(clientName)}>
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {expandedClients.has(clientName) ? (
-                        <ChevronDown className="h-5 w-5" />
-                      ) : (
-                        <ChevronRight className="h-5 w-5" />
-                      )}
+                      {expandedClients.has(clientName) ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
                       <span>{clientName}</span>
                       <Badge variant="secondary">
                         {clientSurveys.length} סקר{clientSurveys.length > 1 ? "ים" : ""}
@@ -242,8 +211,7 @@ const Dashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 
-                {expandedClients.has(clientName) && (
-                  <CardContent className="space-y-4">
+                {expandedClients.has(clientName) && <CardContent className="space-y-4">
                     {/* כותרות טבלה */}
                     <div className="grid grid-cols-1 md:grid-cols-7 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm">
                       <div>שם המערכת</div>
@@ -255,28 +223,21 @@ const Dashboard = () => {
                       <div>פעולות</div>
                     </div>
                     
-                    {clientSurveys.map((survey) => {
-                      const primaryContact = survey.contacts[0];
-                      
-                      return (
-                        <div key={survey.id} className="border rounded-lg p-4">
+                    {clientSurveys.map(survey => {
+              const primaryContact = survey.contacts[0];
+              return <div key={survey.id} className="border rounded-lg p-4 px-0 py-[17px] my-[7px] mx-0">
                           <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-center">
                             <div className="font-medium truncate">{survey.system_name}</div>
                             
                             <div>
-                              <Select
-                                value={survey.status}
-                                onValueChange={(value) => updateSurveyStatus(survey.id, value)}
-                              >
+                              <Select value={survey.status} onValueChange={value => updateSurveyStatus(survey.id, value)}>
                                 <SelectTrigger>
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {statusOptions.map((option) => (
-                                    <SelectItem key={option.value} value={option.value}>
+                                  {statusOptions.map(option => <SelectItem key={option.value} value={option.value}>
                                       {option.label}
-                                    </SelectItem>
-                                  ))}
+                                    </SelectItem>)}
                                 </SelectContent>
                               </Select>
                             </div>
@@ -290,142 +251,64 @@ const Dashboard = () => {
                             </div>
                             
                             <div className="text-sm">
-                              {primaryContact ? (
-                                `${primaryContact.first_name} ${primaryContact.last_name}`
-                              ) : (
-                                "אין איש קשר"
-                              )}
+                              {primaryContact ? `${primaryContact.first_name} ${primaryContact.last_name}` : "אין איש קשר"}
                             </div>
                             
                             <div className="flex gap-1 flex-wrap">
-                              {primaryContact?.phone && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => window.open(`https://wa.me/972${primaryContact.phone.replace(/\D/g, '').slice(1)}`, '_blank')}
-                                  title="פתח ב-WhatsApp"
-                                >
+                              {primaryContact?.phone && <Button variant="outline" size="sm" onClick={() => window.open(`https://wa.me/972${primaryContact.phone.replace(/\D/g, '').slice(1)}`, '_blank')} title="פתח ב-WhatsApp">
                                   <MessageSquare className="h-3 w-3" />
-                                </Button>
-                              )}
+                                </Button>}
                               
-                              {primaryContact?.email && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => window.open(`mailto:${primaryContact.email}`, '_blank')}
-                                  title="שלח מייל"
-                                >
+                              {primaryContact?.email && <Button variant="outline" size="sm" onClick={() => window.open(`mailto:${primaryContact.email}`, '_blank')} title="שלח מייל">
                                   <Mail className="h-3 w-3" />
-                                </Button>
-                              )}
+                                </Button>}
                             </div>
                             
                             <div className="flex gap-1 flex-wrap">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                title="עריכה"
-                                onClick={() => {
-                                  setSelectedSurvey(survey);
-                                  setShowEditDialog(true);
-                                }}
-                              >
+                              <Button variant="outline" size="sm" title="עריכה" onClick={() => {
+                      setSelectedSurvey(survey);
+                      setShowEditDialog(true);
+                    }}>
                                 <Edit className="h-3 w-3" />
                               </Button>
                               
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                title="תבנית מייל"
-                                onClick={() => {
-                                  setSelectedSurvey(survey);
-                                  setShowEmailDialog(true);
-                                }}
-                              >
+                              <Button variant="outline" size="sm" title="תבנית מייל" onClick={() => {
+                      setSelectedSurvey(survey);
+                      setShowEmailDialog(true);
+                    }}>
                                 <Mail className="h-3 w-3" />
                               </Button>
                               
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                title="היסטוריית שינויים"
-                                onClick={() => {
-                                  setSelectedSurvey(survey);
-                                  setShowHistoryDialog(true);
-                                }}
-                              >
+                              <Button variant="outline" size="sm" title="היסטוריית שינויים" onClick={() => {
+                      setSelectedSurvey(survey);
+                      setShowHistoryDialog(true);
+                    }}>
                                 <History className="h-3 w-3" />
                               </Button>
                               
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => archiveSurvey(survey.id)}
-                                title="העבר לארכיון"
-                              >
+                              <Button variant="outline" size="sm" onClick={() => archiveSurvey(survey.id)} title="העבר לארכיון">
                                 <Archive className="h-3 w-3" />
                               </Button>
                               
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => deleteSurvey(survey.id)}
-                                title="מחק"
-                                className="text-destructive hover:text-destructive"
-                              >
+                              <Button variant="outline" size="sm" onClick={() => deleteSurvey(survey.id)} title="מחק" className="text-destructive hover:text-destructive">
                                 <Trash2 className="h-3 w-3" />
                               </Button>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </CardContent>
-                )}
-              </Card>
-            ))}
-          </div>
-        )}
+                        </div>;
+            })}
+                  </CardContent>}
+              </Card>)}
+          </div>}
 
-        {showAddDialog && (
-          <AddSurveyDialog
-            open={showAddDialog}
-            onOpenChange={setShowAddDialog}
-            onSuccess={fetchSurveys}
-          />
-        )}
+        {showAddDialog && <AddSurveyDialog open={showAddDialog} onOpenChange={setShowAddDialog} onSuccess={fetchSurveys} />}
 
-        {showHistoryDialog && selectedSurvey && (
-          <SurveyHistoryDialog
-            open={showHistoryDialog}
-            onOpenChange={setShowHistoryDialog}
-            surveyId={selectedSurvey.id}
-            surveyName={selectedSurvey.system_name}
-          />
-        )}
+        {showHistoryDialog && selectedSurvey && <SurveyHistoryDialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog} surveyId={selectedSurvey.id} surveyName={selectedSurvey.system_name} />}
 
-        {showEmailDialog && selectedSurvey && (
-          <EmailTemplateDialog
-            open={showEmailDialog}
-            onOpenChange={setShowEmailDialog}
-            surveyName={selectedSurvey.system_name}
-            clientName={selectedSurvey.clients.name}
-            contactEmail={selectedSurvey.contacts[0]?.email}
-          />
-        )}
+        {showEmailDialog && selectedSurvey && <EmailTemplateDialog open={showEmailDialog} onOpenChange={setShowEmailDialog} surveyName={selectedSurvey.system_name} clientName={selectedSurvey.clients.name} contactEmail={selectedSurvey.contacts[0]?.email} />}
 
-        {showEditDialog && selectedSurvey && (
-          <EditSurveyDialog
-            open={showEditDialog}
-            onOpenChange={setShowEditDialog}
-            survey={selectedSurvey}
-            onSuccess={fetchSurveys}
-          />
-        )}
+        {showEditDialog && selectedSurvey && <EditSurveyDialog open={showEditDialog} onOpenChange={setShowEditDialog} survey={selectedSurvey} onSuccess={fetchSurveys} />}
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Dashboard;
