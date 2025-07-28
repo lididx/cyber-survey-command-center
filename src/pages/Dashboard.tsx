@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Mail, History, Archive, Trash2, Phone, MessageSquare, ChevronDown, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AddSurveyDialog from "@/components/AddSurveyDialog";
+import SurveyHistoryDialog from "@/components/SurveyHistoryDialog";
+import EmailTemplateDialog from "@/components/EmailTemplateDialog";
+import EditSurveyDialog from "@/components/EditSurveyDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Survey {
@@ -38,6 +41,10 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
 
   const statusLabels: Record<string, string> = {
     received: "התקבל",
@@ -193,13 +200,13 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-6" dir="rtl">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-foreground">דשבורד סקרים</h1>
           <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             הוסף סקר חדש
           </Button>
+          <h1 className="text-3xl font-bold text-foreground">דשבורד סקרים</h1>
         </div>
 
         {Object.keys(groupedSurveys).length === 0 ? (
@@ -237,13 +244,24 @@ const Dashboard = () => {
                 
                 {expandedClients.has(clientName) && (
                   <CardContent className="space-y-4">
+                    {/* כותרות טבלה */}
+                    <div className="grid grid-cols-1 md:grid-cols-7 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm">
+                      <div>שם המערכת</div>
+                      <div>סטטוס</div>
+                      <div>תאריך ביצוע הסקר</div>
+                      <div>תאריך קבלת הסקר</div>
+                      <div>אנשי קשר</div>
+                      <div>יצירת קשר</div>
+                      <div>פעולות</div>
+                    </div>
+                    
                     {clientSurveys.map((survey) => {
                       const primaryContact = survey.contacts[0];
                       
                       return (
-                        <div key={survey.id} className="border rounded-lg p-4 space-y-3">
+                        <div key={survey.id} className="border rounded-lg p-4">
                           <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-center">
-                            <div className="font-medium">{survey.system_name}</div>
+                            <div className="font-medium truncate">{survey.system_name}</div>
                             
                             <div>
                               <Select
@@ -263,13 +281,11 @@ const Dashboard = () => {
                               </Select>
                             </div>
                             
-                            <div className="text-sm text-muted-foreground">
-                              <div className="font-medium">תאריך הסקר</div>
+                            <div className="text-sm">
                               {new Date(survey.survey_date).toLocaleDateString("he-IL")}
                             </div>
                             
-                            <div className="text-sm text-muted-foreground">
-                              <div className="font-medium">תאריך קבלה</div>
+                            <div className="text-sm">
                               {survey.received_date ? new Date(survey.received_date).toLocaleDateString("he-IL") : "לא צוין"}
                             </div>
                             
@@ -281,7 +297,7 @@ const Dashboard = () => {
                               )}
                             </div>
                             
-                            <div className="flex gap-2">
+                            <div className="flex gap-1 flex-wrap">
                               {primaryContact?.phone && (
                                 <Button
                                   variant="outline"
@@ -289,7 +305,7 @@ const Dashboard = () => {
                                   onClick={() => window.open(`https://wa.me/972${primaryContact.phone.replace(/\D/g, '').slice(1)}`, '_blank')}
                                   title="פתח ב-WhatsApp"
                                 >
-                                  <MessageSquare className="h-4 w-4" />
+                                  <MessageSquare className="h-3 w-3" />
                                 </Button>
                               )}
                               
@@ -300,22 +316,46 @@ const Dashboard = () => {
                                   onClick={() => window.open(`mailto:${primaryContact.email}`, '_blank')}
                                   title="שלח מייל"
                                 >
-                                  <Mail className="h-4 w-4" />
+                                  <Mail className="h-3 w-3" />
                                 </Button>
                               )}
                             </div>
                             
-                            <div className="flex gap-2">
-                              <Button variant="outline" size="sm" title="עריכה">
-                                <Edit className="h-4 w-4" />
+                            <div className="flex gap-1 flex-wrap">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                title="עריכה"
+                                onClick={() => {
+                                  setSelectedSurvey(survey);
+                                  setShowEditDialog(true);
+                                }}
+                              >
+                                <Edit className="h-3 w-3" />
                               </Button>
                               
-                              <Button variant="outline" size="sm" title="תבנית מייל">
-                                <Mail className="h-4 w-4" />
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                title="תבנית מייל"
+                                onClick={() => {
+                                  setSelectedSurvey(survey);
+                                  setShowEmailDialog(true);
+                                }}
+                              >
+                                <Mail className="h-3 w-3" />
                               </Button>
                               
-                              <Button variant="outline" size="sm" title="היסטוריית שינויים">
-                                <History className="h-4 w-4" />
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                title="היסטוריית שינויים"
+                                onClick={() => {
+                                  setSelectedSurvey(survey);
+                                  setShowHistoryDialog(true);
+                                }}
+                              >
+                                <History className="h-3 w-3" />
                               </Button>
                               
                               <Button 
@@ -324,7 +364,7 @@ const Dashboard = () => {
                                 onClick={() => archiveSurvey(survey.id)}
                                 title="העבר לארכיון"
                               >
-                                <Archive className="h-4 w-4" />
+                                <Archive className="h-3 w-3" />
                               </Button>
                               
                               <Button 
@@ -334,7 +374,7 @@ const Dashboard = () => {
                                 title="מחק"
                                 className="text-destructive hover:text-destructive"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3" />
                               </Button>
                             </div>
                           </div>
@@ -352,6 +392,34 @@ const Dashboard = () => {
           <AddSurveyDialog
             open={showAddDialog}
             onOpenChange={setShowAddDialog}
+            onSuccess={fetchSurveys}
+          />
+        )}
+
+        {showHistoryDialog && selectedSurvey && (
+          <SurveyHistoryDialog
+            open={showHistoryDialog}
+            onOpenChange={setShowHistoryDialog}
+            surveyId={selectedSurvey.id}
+            surveyName={selectedSurvey.system_name}
+          />
+        )}
+
+        {showEmailDialog && selectedSurvey && (
+          <EmailTemplateDialog
+            open={showEmailDialog}
+            onOpenChange={setShowEmailDialog}
+            surveyName={selectedSurvey.system_name}
+            clientName={selectedSurvey.clients.name}
+            contactEmail={selectedSurvey.contacts[0]?.email}
+          />
+        )}
+
+        {showEditDialog && selectedSurvey && (
+          <EditSurveyDialog
+            open={showEditDialog}
+            onOpenChange={setShowEditDialog}
+            survey={selectedSurvey}
             onSuccess={fetchSurveys}
           />
         )}

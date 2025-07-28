@@ -32,24 +32,9 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
       <header className="bg-white dark:bg-slate-800 shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              <h1 className="text-xl font-bold text-primary">מערכת לניהול סקרים</h1>
-            </div>
-            
-            <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              {profile && (
-                <div className="text-sm text-muted-foreground text-right">
-                  <div className="font-medium">
-                    {profile.first_name} {profile.last_name}
-                  </div>
-                  <div className="text-xs">
-                    {getRoleText(profile.role, profile.gender)}
-                  </div>
-                </div>
-              )}
-              
               {!isArchivePage && !isManagementPage && (
                 <Button
                   variant="outline"
@@ -95,6 +80,23 @@ const Layout = ({ children }: LayoutProps) => {
                 <LogOut className="h-4 w-4" />
                 התנתק
               </Button>
+            </div>
+            
+            <div className="flex items-center space-x-4 rtl:space-x-reverse">
+              <h1 className="text-xl font-bold text-primary">מערכת לניהול סקרים</h1>
+            </div>
+            
+            <div className="flex items-center space-x-4 rtl:space-x-reverse">
+              {profile && (
+                <div className="text-sm text-muted-foreground text-right">
+                  <div className="font-medium">
+                    {profile.first_name} {profile.last_name}
+                  </div>
+                  <div className="text-xs">
+                    {getRoleText(profile.role, profile.gender)}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
