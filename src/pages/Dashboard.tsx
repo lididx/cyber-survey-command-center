@@ -73,16 +73,21 @@ const Dashboard = () => {
   const fetchSurveys = async () => {
     try {
       setLoading(true);
-      const {
-        data,
-        error
-      } = await supabase.from("surveys").select(`
+      let query = supabase.from("surveys").select(`
           *,
           clients (name),
           contacts (*)
-        `).eq("is_archived", false).order("created_at", {
+        `).eq("is_archived", false);
+
+      // If user is not admin or manager, only show their own surveys
+      if (profile && !['admin', 'manager'].includes(profile.role)) {
+        query = query.eq("user_id", profile.id);
+      }
+
+      const { data, error } = await query.order("created_at", {
         ascending: false
       });
+      
       if (error) throw error;
       setSurveys(data || []);
     } catch (error: any) {
@@ -224,31 +229,34 @@ const Dashboard = () => {
                 {expandedClients.has(clientName) && <CardContent className="space-y-4">
                     {/* כותרות טבלה */}
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm">
-                      <div>שם המערכת</div>
-                      <div>סטטוס</div>
-                      <div>תאריך קבלת הסקר</div>
-                      <div>אנשי קשר</div>
-                      <div>תאריך ביצוע הסקר</div>
-                      <div>פעולות</div>
+                      <div className="text-center">שם המערכת</div>
+                      <div className="text-center">סטטוס</div>
+                      <div className="text-center">תאריך קבלת הסקר</div>
+                      <div className="text-center">אנשי קשר</div>
+                      <div className="text-center">תאריך ביצוע הסקר</div>
+                      <div className="text-center">פעולות</div>
                     </div>
                     
                     {clientSurveys.map(survey => {
               const primaryContact = survey.contacts[0];
               const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
-              return <div key={survey.id} className="border rounded-lg p-4 px-0 py-[17px] my-[7px] mx-0">
-                          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
-                            <div className="font-medium truncate">{survey.system_name}</div>
+              return <div key={survey.id} className="border rounded-lg p-4 my-2">
+                          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center min-h-[60px]">
+                            <div className="font-medium text-center">{survey.system_name}</div>
                             
                             <div>
-                              <Badge 
-                                style={{ backgroundColor: statusColors[survey.status], color: 'white' }}
-                                className="text-xs"
-                              >
-                                {statusLabels[survey.status]}
-                              </Badge>
                               <Select value={survey.status} onValueChange={value => updateSurveyStatus(survey.id, value)}>
-                                <SelectTrigger className="mt-1">
-                                  <SelectValue />
+                                <SelectTrigger 
+                                  style={{ 
+                                    backgroundColor: statusColors[survey.status], 
+                                    color: 'white',
+                                    borderColor: statusColors[survey.status]
+                                  }}
+                                  className="text-white border-0"
+                                >
+                                  <SelectValue>
+                                    {statusLabels[survey.status]}
+                                  </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
                                   {statusOptions.map(option => <SelectItem key={option.value} value={option.value}>
@@ -258,15 +266,15 @@ const Dashboard = () => {
                               </Select>
                             </div>
                             
-                            <div className="text-sm">
+                            <div className="text-sm text-center">
                               {survey.received_date ? new Date(survey.received_date).toLocaleDateString("he-IL") : "לא צוין"}
                             </div>
                             
-                            <div className="text-sm space-y-1">
+                            <div className="text-sm text-center space-y-2">
                               <div>
                                 {primaryContact ? `${primaryContact.first_name} ${primaryContact.last_name}` : "אין איש קשר"}
                               </div>
-                              <div className="flex gap-1">
+                              <div className="flex gap-1 justify-center">
                                 {primaryContact?.phone && <Button variant="outline" size="sm" onClick={() => window.open(`https://wa.me/972${primaryContact.phone.replace(/\D/g, '').slice(1)}`, '_blank')} title="פתח ב-WhatsApp">
                                     <MessageSquare className="h-3 w-3" />
                                   </Button>}
@@ -277,11 +285,11 @@ const Dashboard = () => {
                               </div>
                             </div>
                             
-                            <div className="text-sm">
+                            <div className="text-sm text-center">
                               {new Date(survey.survey_date).toLocaleDateString("he-IL")}
                             </div>
                             
-                            <div className="flex gap-1 flex-wrap">
+                            <div className="flex gap-1 flex-wrap justify-center">
                               <Button variant="outline" size="sm" title="עריכה" onClick={() => {
                       setSelectedSurvey(survey);
                       setShowEditDialog(true);

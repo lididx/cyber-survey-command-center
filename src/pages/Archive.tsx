@@ -48,15 +48,21 @@ const Archive = () => {
   const fetchArchivedSurveys = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from("surveys")
         .select(`
           *,
           clients (name),
           contacts (*)
         `)
-        .eq("is_archived", true)
-        .order("created_at", { ascending: false });
+        .eq("is_archived", true);
+
+      // If user is not admin or manager, only show their own surveys
+      if (profile && !['admin', 'manager'].includes(profile.role)) {
+        query = query.eq("user_id", profile.id);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) throw error;
       setSurveys(data || []);

@@ -31,7 +31,7 @@ const EmailTemplateDialog = ({ open, onOpenChange, surveyName, clientName, conta
 
 היי ${contactNamesText},
 
-שמי ${userFirstName} אני ${genderText.surveyor} אפליקציה מטעם חברת Citadel העובדת עם ${clientName}, קיבלתי את המייל שלכם על מנת לתאם מולכם סקר אפליקציה למערכת ${surveyName}.
+שמי ${userFirstName || '[שם הבודק]'} אני ${genderText.surveyor} אפליקציה מטעם חברת Citadel העובדת עם ${clientName}, קיבלתי את המייל שלכם על מנת לתאם מולכם סקר אפליקציה למערכת ${surveyName}.
 
 להלן הנושאים עליהם נעבור במהלך סקר האפליקציה על המערכת:
 	•	תיאור המערכת (מידע כללי על המערכת הכולל גם גרסאות שפות תכנות)

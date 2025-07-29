@@ -191,11 +191,7 @@ const Management = () => {
             <CardTitle>סטטיסטיקות מערכת</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-2xl font-bold text-primary">{clients.length}</div>
-                <div className="text-sm text-muted-foreground">לקוחות במערכת</div>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="text-center p-4 border rounded-lg">
                 <div className="text-2xl font-bold text-green-600">{stats.activeSurveys}</div>
                 <div className="text-sm text-muted-foreground">סקרים פעילים</div>

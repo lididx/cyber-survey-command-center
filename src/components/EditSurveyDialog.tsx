@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ContactDisplaySection from "./ContactDisplaySection";
 
 interface Survey {
   id: string;
@@ -16,6 +17,14 @@ interface Survey {
   received_date: string;
   status: string;
   client_id: string;
+  contacts?: Array<{
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    role: string;
+  }>;
 }
 
 interface Client {
@@ -50,6 +59,7 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
     client_id: ""
   });
   const [clients, setClients] = useState<Client[]>([]);
+  const [contacts, setContacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -63,6 +73,7 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
         status: survey.status,
         client_id: survey.client_id
       });
+      setContacts(survey.contacts || []);
     }
   }, [survey]);
 
@@ -133,9 +144,7 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
             <Label htmlFor="client_id">לקוח</Label>
             <Select value={formData.client_id} onValueChange={(value) => setFormData(prev => ({ ...prev, client_id: value }))}>
               <SelectTrigger>
-                <SelectValue placeholder="בחר לקוח">
-                  {clients.find(c => c.id === formData.client_id)?.name || "בחר לקוח"}
-                </SelectValue>
+                <SelectValue placeholder="בחר לקוח" />
               </SelectTrigger>
               <SelectContent>
                 {clients.map((client) => (
@@ -203,6 +212,11 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
               </SelectContent>
             </Select>
           </div>
+
+          {/* Contact Display Section */}
+          {contacts.length > 0 && (
+            <ContactDisplaySection contacts={contacts} />
+          )}
 
           <div className="flex gap-2 justify-end">
             <Button 
