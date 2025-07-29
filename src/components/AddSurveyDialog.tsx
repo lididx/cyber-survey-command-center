@@ -114,8 +114,8 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
           client_id: formData.clientId,
           system_name: formData.systemName,
           system_description: formData.systemDescription,
-          survey_date: formData.surveyDate || null,
-          received_date: formData.receivedDate || null,
+          survey_date: formData.surveyDate ? formData.surveyDate : null,
+          received_date: formData.receivedDate ? formData.receivedDate : null,
           status: formData.status
         })
         .select()

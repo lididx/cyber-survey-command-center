@@ -63,8 +63,7 @@ const Archive = () => {
         .select(`
           *,
           clients (name, logo_url),
-          contacts (*),
-          profiles!inner(first_name, last_name, role)
+          contacts (*)
         `)
         .eq("is_archived", true);
 
@@ -229,11 +228,6 @@ const Archive = () => {
                         {/* שם המערכת */}
                         <div className="text-center">
                           <div className="font-medium text-sm">{survey.system_name}</div>
-                          {profile?.role && ['admin', 'manager'].includes(profile.role) && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              בודק: {survey.profiles?.first_name} {survey.profiles?.last_name}
-                            </div>
-                          )}
                         </div>
 
                         {/* סטטוס */}

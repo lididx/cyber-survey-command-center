@@ -22,6 +22,7 @@ interface Survey {
   client_id: string;
   clients: {
     name: string;
+    logo_url: string | null;
   };
   contacts: Array<{
     id: string;
@@ -77,8 +78,7 @@ const Dashboard = () => {
       let query = supabase.from("surveys").select(`
           *,
           clients (name, logo_url),
-          contacts (*),
-          profiles!inner(first_name, last_name, role)
+          contacts (*)
         `).eq("is_archived", false);
 
       // If user is not admin or manager, only show their own surveys
@@ -244,7 +244,22 @@ const Dashboard = () => {
               const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
               return <div key={survey.id} className="border rounded-lg p-4 my-2">
                           <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center min-h-[60px]">
-                            <div className="font-medium text-center">{survey.system_name}</div>
+                            <div className="text-center">
+                              <div className="flex flex-col items-center gap-2">
+                                {survey.clients?.logo_url ? (
+                                  <img 
+                                    src={survey.clients.logo_url} 
+                                    alt={survey.clients.name} 
+                                    className="w-12 h-12 object-contain rounded"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 bg-muted/50 rounded flex items-center justify-center text-xs text-muted-foreground">
+                                    {survey.clients?.name?.substring(0, 2)}
+                                  </div>
+                                )}
+                                <div className="font-medium text-sm">{survey.system_name}</div>
+                              </div>
+                            </div>
                             
                             <div>
                               <Select value={survey.status} onValueChange={value => updateSurveyStatus(survey.id, value)}>
