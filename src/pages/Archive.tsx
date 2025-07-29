@@ -13,8 +13,10 @@ interface Survey {
   system_name: string;
   system_description: string;
   survey_date: string;
+  received_date: string;
   status: string;
   client_id: string;
+  user_id: string;
   clients: {
     name: string;
     logo_url: string | null;
@@ -27,6 +29,10 @@ interface Survey {
     phone: string;
     role: string;
   }>;
+  profiles?: {
+    first_name: string;
+    last_name: string;
+  };
 }
 
 const Archive = () => {
@@ -64,7 +70,8 @@ const Archive = () => {
         .select(`
           *,
           clients (name, logo_url),
-          contacts (*)
+          contacts (*),
+          profiles (first_name, last_name)
         `)
         .eq("is_archived", true);
 
@@ -76,7 +83,7 @@ const Archive = () => {
       const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) throw error;
-      setSurveys(data || []);
+      setSurveys((data as any) || []);
     } catch (error: any) {
       toast({
         title: "שגיאה",
@@ -141,8 +148,10 @@ const Archive = () => {
   };
 
   useEffect(() => {
-    fetchArchivedSurveys();
-  }, []);
+    if (profile) {
+      fetchArchivedSurveys();
+    }
+  }, [profile]);
 
   const groupedSurveys = surveys.reduce((acc, survey) => {
     const clientName = survey.clients.name;
@@ -175,7 +184,7 @@ const Archive = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-6" dir="rtl">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-foreground">ארכיון סקרים</h1>
           <Badge variant="secondary" className="text-lg px-4 py-2">
@@ -206,18 +215,18 @@ const Archive = () => {
                       )}
                       
                       {/* תצוגת לוגו או שם לקוח */}
-                      {clientSurveys[0]?.clients?.logo_url ? (
-                        <div className="flex items-center gap-3">
-                          <img 
-                            src={clientSurveys[0].clients.logo_url} 
-                            alt={clientName} 
-                            className="w-8 h-8 object-contain rounded"
-                          />
-                          <span className="text-sm text-muted-foreground">{clientName}</span>
-                        </div>
-                      ) : (
-                        <span>{clientName}</span>
-                      )}
+                       {clientSurveys[0]?.clients?.logo_url ? (
+                         <div className="flex items-center gap-3">
+                           <img 
+                             src={clientSurveys[0].clients.logo_url} 
+                             alt={clientName} 
+                             className="w-12 h-12 object-contain rounded"
+                           />
+                           <span className="text-sm text-muted-foreground">{clientName}</span>
+                         </div>
+                       ) : (
+                         <span>{clientName}</span>
+                       )}
                       
                       <Badge variant="outline" className="bg-muted">
                         {clientSurveys.length} סקר{clientSurveys.length > 1 ? "ים" : ""}
@@ -229,17 +238,20 @@ const Archive = () => {
                 {expandedClients.has(clientName) && (
                   <CardContent className="space-y-0">
                     {/* כותרות עמודות */}
-                    <div className="grid grid-cols-6 gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-center">
+                    <div className={`gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-center ${profile && ['admin', 'manager'].includes(profile.role) ? 'grid grid-cols-7' : 'grid grid-cols-6'}`}>
                       <div>שם המערכת</div>
                       <div>סטטוס</div>
                       <div>תאריך קבלת הסקר</div>
                       <div>אנשי קשר</div>
                       <div>תאריך ביצוע הסקר</div>
+                      {profile && ['admin', 'manager'].includes(profile.role) && (
+                        <div>אחראי על הסקר</div>
+                      )}
                       <div>פעולות</div>
                     </div>
 
                     {clientSurveys.map((survey: any) => (
-                      <div key={survey.id} className="grid grid-cols-6 gap-4 p-4 border-b hover:bg-muted/50 transition-colors items-center min-h-[80px]">
+                      <div key={survey.id} className={`gap-4 p-4 border-b hover:bg-muted/50 transition-colors items-center min-h-[80px] ${profile && ['admin', 'manager'].includes(profile.role) ? 'grid grid-cols-7' : 'grid grid-cols-6'}`}>
                         {/* שם המערכת */}
                         <div className="text-center">
                           <div className="font-medium text-sm">{survey.system_name}</div>
@@ -275,6 +287,15 @@ const Archive = () => {
                             {new Date(survey.survey_date).toLocaleDateString('he-IL')}
                           </div>
                         </div>
+
+                        {/* אחראי על הסקר - רק למנהלים ואדמינים */}
+                        {profile && ['admin', 'manager'].includes(profile.role) && (
+                          <div className="text-center">
+                            <div className="text-sm text-muted-foreground">
+                              {survey.profiles ? `${survey.profiles.first_name} ${survey.profiles.last_name}` : "לא זמין"}
+                            </div>
+                          </div>
+                        )}
 
                         {/* פעולות */}
                         <div className="flex justify-center gap-1">

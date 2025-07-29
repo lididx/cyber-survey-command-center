@@ -20,6 +20,7 @@ interface Survey {
   received_date: string;
   status: string;
   client_id: string;
+  user_id: string;
   clients: {
     name: string;
     logo_url: string | null;
@@ -32,6 +33,10 @@ interface Survey {
     phone: string;
     role: string;
   }>;
+  profiles?: {
+    first_name: string;
+    last_name: string;
+  };
 }
 const Dashboard = () => {
   const {
@@ -75,10 +80,12 @@ const Dashboard = () => {
   const fetchSurveys = async () => {
     try {
       setLoading(true);
+      
       let query = supabase.from("surveys").select(`
           *,
           clients (name, logo_url),
-          contacts (*)
+          contacts (*),
+          profiles (first_name, last_name)
         `).eq("is_archived", false);
 
       // If user is not admin or manager, only show their own surveys
@@ -91,7 +98,7 @@ const Dashboard = () => {
       });
       
       if (error) throw error;
-      setSurveys(data || []);
+      setSurveys((data as any) || []);
     } catch (error: any) {
       toast({
         title: "שגיאה",
@@ -170,8 +177,10 @@ const Dashboard = () => {
     }
   };
   useEffect(() => {
-    fetchSurveys();
-  }, []);
+    if (profile) {
+      fetchSurveys();
+    }
+  }, [profile]);
   const groupedSurveys = surveys.reduce((acc, survey) => {
     const clientName = survey.clients.name;
     if (!acc[clientName]) {
@@ -226,18 +235,18 @@ const Dashboard = () => {
                       {expandedClients.has(clientName) ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
                       
                       {/* תצוגת לוגו או שם לקוח */}
-                      {clientSurveys[0]?.clients?.logo_url ? (
-                        <div className="flex items-center gap-3">
-                          <img 
-                            src={clientSurveys[0].clients.logo_url} 
-                            alt={clientName} 
-                            className="w-8 h-8 object-contain rounded"
-                          />
-                          <span className="text-sm text-muted-foreground">{clientName}</span>
-                        </div>
-                      ) : (
-                        <span>{clientName}</span>
-                      )}
+                       {clientSurveys[0]?.clients?.logo_url ? (
+                         <div className="flex items-center gap-3">
+                           <img 
+                             src={clientSurveys[0].clients.logo_url} 
+                             alt={clientName} 
+                             className="w-12 h-12 object-contain rounded"
+                           />
+                           <span className="text-sm text-muted-foreground">{clientName}</span>
+                         </div>
+                       ) : (
+                         <span>{clientName}</span>
+                       )}
                       
                       <Badge variant="secondary">
                         {clientSurveys.length} סקר{clientSurveys.length > 1 ? "ים" : ""}
@@ -249,12 +258,15 @@ const Dashboard = () => {
                 {expandedClients.has(clientName) && (
                     <CardContent className="space-y-4">
                     {/* כותרות טבלה */}
-                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm">
+                    <div className={`grid grid-cols-1 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6'}`}>
                       <div className="text-center">שם המערכת</div>
                       <div className="text-center">סטטוס</div>
                       <div className="text-center">תאריך קבלת הסקר</div>
                       <div className="text-center">אנשי קשר</div>
                       <div className="text-center">תאריך ביצוע הסקר</div>
+                      {profile && ['admin', 'manager'].includes(profile.role) && (
+                        <div className="text-center">אחראי על הסקר</div>
+                      )}
                       <div className="text-center">פעולות</div>
                     </div>
                     
@@ -263,7 +275,7 @@ const Dashboard = () => {
                       const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
                       return (
                         <div key={survey.id} className="border rounded-lg p-4 my-2">
-                          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center min-h-[60px]">
+                          <div className={`grid grid-cols-1 gap-4 items-center min-h-[60px] ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6'}`}>
                             {/* שם המערכת בלבד */}
                             <div className="font-medium text-center">{survey.system_name}</div>
                             
@@ -317,6 +329,12 @@ const Dashboard = () => {
                             <div className="text-sm text-center">
                               {new Date(survey.survey_date).toLocaleDateString("he-IL")}
                             </div>
+                            
+                            {profile && ['admin', 'manager'].includes(profile.role) && (
+                              <div className="text-sm text-center">
+                                {survey.profiles ? `${survey.profiles.first_name} ${survey.profiles.last_name}` : "לא זמין"}
+                              </div>
+                            )}
                             
                             <div className="flex gap-1 flex-wrap justify-center">
                               <Button variant="outline" size="sm" title="עריכה" onClick={() => {
