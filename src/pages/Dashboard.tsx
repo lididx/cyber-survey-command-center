@@ -211,18 +211,21 @@ const Dashboard = () => {
   return <Layout>
       <div className="space-y-6" dir="rtl">
         <div className="flex justify-between items-center">
-          <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
+          <Button onClick={() => setShowAddDialog(true)} className="citadel-button-primary flex items-center gap-2 font-semibold">
             <Plus className="h-4 w-4" />
             הוסף סקר חדש
           </Button>
-          <h1 className="text-3xl font-bold text-foreground">דשבורד סקרים</h1>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">דשבורד סקרים</h1>
         </div>
 
         {Object.keys(groupedSurveys).length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground text-lg mb-4">אין סקרים פתוחים כרגע</p>
-              <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
+          <Card className="citadel-card">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <div className="bg-slate-100 rounded-full p-4 mb-6">
+                <Plus className="h-8 w-8 text-slate-500" />
+              </div>
+              <p className="text-slate-600 text-lg mb-6 font-medium">אין סקרים פתוחים כרגע</p>
+              <Button onClick={() => setShowAddDialog(true)} className="citadel-button-primary flex items-center gap-2 font-semibold">
                 <Plus className="h-4 w-4" />
                 הוסף סקר ראשון
               </Button>
@@ -231,37 +234,50 @@ const Dashboard = () => {
         ) : (
           <div className="space-y-4">
             {Object.entries(groupedSurveys).map(([clientName, clientSurveys]) => (
-              <Card key={clientName}>
-                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleClientExpansion(clientName)}>
+              <Card key={clientName} className="citadel-card border-slate-200 hover:shadow-medium transition-shadow duration-200">
+                <CardHeader className="cursor-pointer hover:bg-slate-50/70 transition-colors duration-150 border-b border-slate-100" onClick={() => toggleClientExpansion(clientName)}>
                   <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {expandedClients.has(clientName) ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                    <div className="flex items-center gap-4">
+                      {expandedClients.has(clientName) ? <ChevronDown className="h-5 w-5 text-slate-600" /> : <ChevronRight className="h-5 w-5 text-slate-600" />}
                       
                       {/* תצוגת לוגו או שם לקוח */}
                        {clientSurveys[0]?.clients?.logo_url ? (
-                         <div className="flex items-center gap-3">
-                           <img 
-                             src={clientSurveys[0].clients.logo_url} 
-                             alt={clientName} 
-                             className="w-12 h-12 object-contain rounded"
-                           />
-                           <span className="text-sm text-muted-foreground">{clientName}</span>
+                         <div className="flex items-center gap-4">
+                           <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                             <img 
+                               src={clientSurveys[0].clients.logo_url} 
+                               alt={clientName} 
+                               className="w-16 h-16 object-contain"
+                             />
+                           </div>
+                           <div className="flex flex-col">
+                             <span className="text-xl font-bold text-slate-800">{clientName}</span>
+                             <span className="text-sm text-slate-500">לקוח פעיל</span>
+                           </div>
                          </div>
                        ) : (
-                         <span>{clientName}</span>
+                         <div className="flex items-center gap-4">
+                           <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-lg text-white font-bold text-xl">
+                             {clientName.charAt(0)}
+                           </div>
+                           <div className="flex flex-col">
+                             <span className="text-xl font-bold text-slate-800">{clientName}</span>
+                             <span className="text-sm text-slate-500">לקוח פעיל</span>
+                           </div>
+                         </div>
                        )}
                       
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800 font-semibold">
                         {clientSurveys.length} סקר{clientSurveys.length > 1 ? "ים" : ""}
                       </Badge>
                     </div>
                   </CardTitle>
                 </CardHeader>
                 
-                {expandedClients.has(clientName) && (
-                    <CardContent className="space-y-4">
+                 {expandedClients.has(clientName) && (
+                    <CardContent className="p-0">
                     {/* כותרות טבלה */}
-                    <div className={`grid grid-cols-1 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6'}`}>
+                    <div className={`citadel-table-header grid grid-cols-1 gap-4 p-4 text-sm ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6'}`}>
                       <div className="text-center">שם המערכת</div>
                       <div className="text-center">סטטוס</div>
                       <div className="text-center">תאריך קבלת הסקר</div>
@@ -277,10 +293,10 @@ const Dashboard = () => {
                       const primaryContact = survey.contacts[0];
                       const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
                       return (
-                        <div key={survey.id} className="border rounded-lg p-4 my-2">
-                          <div className={`grid grid-cols-1 gap-4 items-center min-h-[60px] ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6'}`}>
+                        <div key={survey.id} className="citadel-table-row">
+                          <div className={`grid grid-cols-1 gap-4 items-center min-h-[80px] p-4 ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6'}`}>
                             {/* שם המערכת בלבד */}
-                            <div className="font-medium text-center">{survey.system_name}</div>
+                            <div className="font-semibold text-center text-slate-800">{survey.system_name}</div>
                             
                             <div>
                               <Select value={survey.status} onValueChange={value => updateSurveyStatus(survey.id, value)}>
@@ -306,35 +322,35 @@ const Dashboard = () => {
                               </Select>
                             </div>
                             
-                            <div className="text-sm text-center">
+                            <div className="text-sm text-center text-slate-600">
                               {survey.received_date ? new Date(survey.received_date).toLocaleDateString("he-IL") : "לא צוין"}
                             </div>
                             
                             <div className="text-sm text-center space-y-2">
-                              <div>
+                              <div className="font-medium text-slate-700">
                                 {primaryContact ? `${primaryContact.first_name} ${primaryContact.last_name}` : "אין איש קשר"}
                               </div>
                               <div className="flex gap-1 justify-center">
                                 {primaryContact?.phone && (
-                                  <Button variant="outline" size="sm" onClick={() => window.open(`https://wa.me/972${primaryContact.phone.replace(/\D/g, '').slice(1)}`, '_blank')} title="פתח ב-WhatsApp">
+                                  <Button variant="outline" size="sm" onClick={() => window.open(`https://wa.me/972${primaryContact.phone.replace(/\D/g, '').slice(1)}`, '_blank')} title="פתח ב-WhatsApp" className="citadel-action-button">
                                     <MessageSquare className="h-3 w-3" />
                                   </Button>
                                 )}
                                 
                                 {primaryContact?.email && (
-                                  <Button variant="outline" size="sm" onClick={() => window.open(`mailto:${primaryContact.email}`, '_blank')} title="שלח מייל">
+                                  <Button variant="outline" size="sm" onClick={() => window.open(`mailto:${primaryContact.email}`, '_blank')} title="שלח מייל" className="citadel-action-button">
                                     <Mail className="h-3 w-3" />
                                   </Button>
                                 )}
                               </div>
                             </div>
                             
-                            <div className="text-sm text-center">
+                            <div className="text-sm text-center text-slate-600">
                               {new Date(survey.survey_date).toLocaleDateString("he-IL")}
                             </div>
                             
                             {profile && ['admin', 'manager'].includes(profile.role) && (
-                              <div className="text-sm text-center">
+                              <div className="text-sm text-center text-slate-600">
                                 לא זמין
                               </div>
                             )}
@@ -343,30 +359,30 @@ const Dashboard = () => {
                               <Button variant="outline" size="sm" title="עריכה" onClick={() => {
                                 setSelectedSurvey(survey);
                                 setShowEditDialog(true);
-                              }}>
-                                <Edit className="h-3 w-3" />
+                              }} className="citadel-action-button">
+                                <Edit className="h-4 w-4" />
                               </Button>
                               
                               <Button variant="outline" size="sm" title="תבנית מייל" onClick={() => {
                                 setSelectedSurvey(survey);
                                 setShowEmailDialog(true);
-                              }}>
-                                <Mail className="h-3 w-3" />
+                              }} className="citadel-action-button">
+                                <Mail className="h-4 w-4" />
                               </Button>
                               
                               <Button variant="outline" size="sm" title="היסטוריית שינויים" onClick={() => {
                                 setSelectedSurvey(survey);
                                 setShowHistoryDialog(true);
-                              }}>
-                                <History className="h-3 w-3" />
+                              }} className="citadel-action-button">
+                                <History className="h-4 w-4" />
                               </Button>
                               
-                              <Button variant="outline" size="sm" onClick={() => archiveSurvey(survey.id)} title="העבר לארכיון">
-                                <Archive className="h-3 w-3" />
+                              <Button variant="outline" size="sm" onClick={() => archiveSurvey(survey.id)} title="העבר לארכיון" className="citadel-action-button">
+                                <Archive className="h-4 w-4" />
                               </Button>
                               
-                              <Button variant="outline" size="sm" onClick={() => deleteSurvey(survey.id)} title="מחק" className="text-destructive hover:text-destructive">
-                                <Trash2 className="h-3 w-3" />
+                              <Button variant="outline" size="sm" onClick={() => deleteSurvey(survey.id)} title="מחק" className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300">
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
                           </div>

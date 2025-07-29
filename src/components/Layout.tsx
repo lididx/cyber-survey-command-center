@@ -27,43 +27,43 @@ const Layout = ({
     if (role === "admin") return "מנהל מערכת";
     return role;
   };
-  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+  return <div className="min-h-screen bg-gradient-subtle">
       {/* Header */}
-      <header className="bg-white dark:bg-slate-800 shadow-sm border-b">
+      <header className="citadel-header sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              {!isArchivePage && !isManagementPage && <Button variant="outline" size="sm" onClick={() => navigate("/archive")} className="flex items-center gap-2">
+            <div className="flex items-center space-x-3 rtl:space-x-reverse">
+              {!isArchivePage && !isManagementPage && <Button variant="outline" size="sm" onClick={() => navigate("/archive")} className="flex items-center gap-2 citadel-action-button hover:shadow-soft">
                   <Archive className="h-4 w-4" />
                   ארכיון
                 </Button>}
               
-              {(isArchivePage || isManagementPage) && <Button variant="outline" size="sm" onClick={() => navigate("/")} className="flex items-center gap-2">
+              {(isArchivePage || isManagementPage) && <Button variant="outline" size="sm" onClick={() => navigate("/")} className="flex items-center gap-2 citadel-action-button hover:shadow-soft">
                   <Home className="h-4 w-4" />
                   דף הבית
                 </Button>}
 
-              {profile?.role === "admin" && !isManagementPage && <Button variant="outline" size="sm" onClick={() => navigate("/management")} className="flex items-center gap-2">
+              {profile?.role === "admin" && !isManagementPage && <Button variant="outline" size="sm" onClick={() => navigate("/management")} className="flex items-center gap-2 citadel-action-button hover:shadow-soft">
                   <Settings className="h-4 w-4" />
                   ניהול
                 </Button>}
               
-              <Button variant="outline" size="sm" onClick={handleSignOut} className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="flex items-center gap-2 citadel-action-button hover:shadow-soft">
                 <LogOut className="h-4 w-4" />
                 התנתק
               </Button>
             </div>
             
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              <h1 className="text-xl font-bold text-primary">מערכת לניהול סקרים - Citadel</h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">מערכת לניהול סקרים - Citadel</h1>
             </div>
             
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              {profile && <div className="text-sm text-muted-foreground text-right">
-                  <div className="font-medium">
+              {profile && <div className="bg-slate-50 px-4 py-2 rounded-lg border border-slate-200 text-right">
+                  <div className="font-semibold text-slate-800">
                     {profile.first_name} {profile.last_name}
                   </div>
-                  <div className="text-xs">
+                  <div className="text-xs text-slate-600 font-medium">
                     {getRoleText(profile.role, profile.gender)}
                   </div>
                 </div>}
@@ -73,8 +73,14 @@ const Layout = ({
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:px-[25px]">
-        {children}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:px-8">
+        <div className="space-y-1">
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent"></div>
+        </div>
+        <div className="mt-6">
+          {children}
+        </div>
       </main>
     </div>;
 };
