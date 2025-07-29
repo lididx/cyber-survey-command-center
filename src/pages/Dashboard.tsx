@@ -230,7 +230,8 @@ const Dashboard = () => {
                 
                 {expandedClients.has(clientName) && <CardContent className="space-y-4">
                     {/* כותרות טבלה */}
-                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-7 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm">
+                      <div className="text-center">לקוח</div>
                       <div className="text-center">שם המערכת</div>
                       <div className="text-center">סטטוס</div>
                       <div className="text-center">תאריך קבלת הסקר</div>
@@ -243,7 +244,8 @@ const Dashboard = () => {
               const primaryContact = survey.contacts[0];
               const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
               return <div key={survey.id} className="border rounded-lg p-4 my-2">
-                          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center min-h-[60px]">
+                          <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-center min-h-[60px]">
+                            {/* לוגו/שם לקוח */}
                             <div className="text-center">
                               <div className="flex flex-col items-center gap-2">
                                 {survey.clients?.logo_url ? (
@@ -257,8 +259,13 @@ const Dashboard = () => {
                                     {survey.clients?.name?.substring(0, 2)}
                                   </div>
                                 )}
-                                <div className="font-medium text-sm">{survey.system_name}</div>
+                                <div className="text-xs text-muted-foreground">{survey.clients?.name}</div>
                               </div>
+                            </div>
+                            
+                            {/* שם המערכת */}
+                            <div className="text-center">
+                              <div className="font-medium text-sm">{survey.system_name}</div>
                             </div>
                             
                             <div>
