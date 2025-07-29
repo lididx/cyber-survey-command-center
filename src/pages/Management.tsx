@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, User, Settings } from "lucide-react";
+import { Plus, Trash2, User, Settings, Upload, Image } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import UserManagementDialog from "@/components/UserManagementDialog";
 
@@ -135,6 +135,45 @@ const Management = () => {
     }
   };
 
+  const uploadClientLogo = async (clientId: string, file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${clientId}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('client-logos')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('client-logos')
+        .getPublicUrl(fileName);
+
+      const { error: updateError } = await supabase
+        .from('clients')
+        .update({ logo_url: publicUrl })
+        .eq('id', clientId);
+
+      if (updateError) throw updateError;
+
+      setClients(prev => prev.map(client => 
+        client.id === clientId ? { ...client, logo_url: publicUrl } : client
+      ));
+
+      toast({
+        title: "לוגו הועלה בהצלחה",
+        description: "הלוגו נשמר ויוצג בדף הבית",
+      });
+    } catch (error: any) {
+      toast({
+        title: "שגיאה",
+        description: "לא ניתן להעלות את הלוגו",
+        variant: "destructive",
+      });
+    }
+  };
+
   const deleteClient = async (clientId: string, clientName: string) => {
     if (!confirm(`האם אתה בטוח שברצונך למחוק את הלקוח "${clientName}"? פעולה זו תמחק גם את כל הסקרים הקשורים אליו.`)) {
       return;
@@ -233,18 +272,47 @@ const Management = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Add New Client */}
-              <form onSubmit={addClient} className="flex gap-2">
-                <Input
-                  value={newClientName}
-                  onChange={(e) => setNewClientName(e.target.value)}
-                  placeholder="שם לקוח חדש"
-                  dir="rtl"
-                  required
-                  className="flex-1"
-                />
+              <form onSubmit={addClient} className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <Input
+                    value={newClientName}
+                    onChange={(e) => setNewClientName(e.target.value)}
+                    placeholder="שם לקוח חדש"
+                    dir="rtl"
+                    required
+                  />
+                </div>
                 <Button type="submit" disabled={addingClient || !newClientName.trim()} size="sm">
                   {addingClient ? "מוסיף..." : "הוסף"}
                 </Button>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && newClientName.trim()) {
+                        // First add the client, then upload logo
+                        const tempClientId = crypto.randomUUID();
+                        supabase.from("clients").insert({ id: tempClientId, name: newClientName.trim() })
+                          .select().single().then(({ data }) => {
+                            if (data) {
+                              uploadClientLogo(data.id, file);
+                              setClients(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+                              setNewClientName("");
+                            }
+                          });
+                      }
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    id="new-client-logo"
+                  />
+                  <Button type="button" variant="outline" size="sm" asChild>
+                    <label htmlFor="new-client-logo" className="cursor-pointer">
+                      <Upload className="h-3 w-3" />
+                    </label>
+                  </Button>
+                </div>
               </form>
 
               {/* Clients List */}
@@ -257,15 +325,46 @@ const Management = () => {
                       key={client.id}
                       className="flex items-center justify-between p-2 border rounded hover:bg-muted/50 transition-colors text-sm"
                     >
-                      <span className="font-medium">{client.name}</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deleteClient(client.id, client.name)}
-                        className="text-destructive hover:text-destructive h-6 w-6 p-0"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        {client.logo_url ? (
+                          <img src={client.logo_url} alt={client.name} className="w-6 h-6 object-contain rounded" />
+                        ) : (
+                          <Image className="w-6 h-6 text-muted-foreground" />
+                        )}
+                        <span className="font-medium">{client.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) uploadClientLogo(client.id, file);
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            id={`logo-${client.id}`}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            asChild
+                          >
+                            <label htmlFor={`logo-${client.id}`} className="cursor-pointer">
+                              <Upload className="h-3 w-3" />
+                            </label>
+                          </Button>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteClient(client.id, client.name)}
+                          className="text-destructive hover:text-destructive h-6 w-6 p-0"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   ))
                 )}

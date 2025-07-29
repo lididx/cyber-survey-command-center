@@ -30,6 +30,25 @@ const UserManagementDialog = ({ open, onOpenChange }: UserManagementDialogProps)
   const [loading, setLoading] = useState(false);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [showPassword, setShowPassword] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState("");
+
+  const generateRandomPassword = () => {
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let password = "";
+    for (let i = 0; i < 12; i++) {
+      password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    setGeneratedPassword(password);
+    setFormData(prev => ({ ...prev, password }));
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "הועתק ללוח",
+      description: "הסיסמא הועתקה ללוח בהצלחה",
+    });
+  };
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -40,14 +59,6 @@ const UserManagementDialog = ({ open, onOpenChange }: UserManagementDialogProps)
     role: "surveyor" as "admin" | "manager" | "surveyor"
   });
 
-  const generatePassword = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-    let password = "";
-    for (let i = 0; i < 12; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setFormData(prev => ({ ...prev, password }));
-  };
 
   const fetchProfiles = async () => {
     try {
@@ -127,7 +138,7 @@ const UserManagementDialog = ({ open, onOpenChange }: UserManagementDialogProps)
   useEffect(() => {
     if (open) {
       fetchProfiles();
-      generatePassword(); // Generate initial password
+      generateRandomPassword(); // Generate initial password
     }
   }, [open]);
 
@@ -218,7 +229,7 @@ const UserManagementDialog = ({ open, onOpenChange }: UserManagementDialogProps)
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={generatePassword}
+                        onClick={generateRandomPassword}
                       >
                         <RefreshCw className="h-4 w-4" />
                       </Button>
