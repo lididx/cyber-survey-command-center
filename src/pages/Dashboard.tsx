@@ -33,10 +33,6 @@ interface Survey {
     phone: string;
     role: string;
   }>;
-  profiles?: {
-    first_name: string;
-    last_name: string;
-  };
 }
 const Dashboard = () => {
   const {
@@ -89,8 +85,7 @@ const Dashboard = () => {
       let query = supabase.from("surveys").select(`
           *,
           clients (name, logo_url),
-          contacts (*),
-          profiles (first_name, last_name)
+          contacts (*)
         `).eq("is_archived", false);
 
       // If user is not admin or manager, only show their own surveys
@@ -340,7 +335,7 @@ const Dashboard = () => {
                             
                             {profile && ['admin', 'manager'].includes(profile.role) && (
                               <div className="text-sm text-center">
-                                {survey.profiles ? `${survey.profiles.first_name} ${survey.profiles.last_name}` : "לא זמין"}
+                                לא זמין
                               </div>
                             )}
                             
