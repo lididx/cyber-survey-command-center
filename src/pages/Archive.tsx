@@ -5,7 +5,7 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RotateCcw, Trash2, ChevronDown, ChevronRight, Mail, MessageSquare, Archive as ArchiveIcon } from "lucide-react";
+import { RotateCcw, Trash2, ChevronDown, ChevronRight, Mail, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Survey {
@@ -186,65 +186,49 @@ const Archive = () => {
     <Layout>
       <div className="space-y-6" dir="rtl">
         <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">ארכיון סקרים</h1>
-          <Badge variant="secondary" className="text-lg px-6 py-3 bg-amber-100 text-amber-800 font-semibold border border-amber-200">
+          <h1 className="text-3xl font-bold text-foreground">ארכיון סקרים</h1>
+          <Badge variant="secondary" className="text-lg px-4 py-2">
             {surveys.length} סקר{surveys.length !== 1 ? "ים" : ""} בארכיון
           </Badge>
         </div>
 
         {Object.keys(groupedSurveys).length === 0 ? (
-          <Card className="citadel-card bg-amber-50 border-amber-200">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <div className="bg-amber-100 rounded-full p-4 mb-6">
-                <ArchiveIcon className="h-8 w-8 text-amber-600" />
-              </div>
-              <p className="text-amber-700 text-lg font-medium">הארכיון ריק כרגע</p>
+          <Card className="bg-muted/20">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <p className="text-muted-foreground text-lg">הארכיון ריק כרגע</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
             {Object.entries(groupedSurveys).map(([clientName, clientSurveys]) => (
-              <Card key={clientName} className="citadel-card bg-amber-50/50 border-amber-200 hover:shadow-medium transition-shadow duration-200">
+              <Card key={clientName} className="bg-muted/20 border-muted">
                 <CardHeader 
-                  className="cursor-pointer hover:bg-amber-100/50 transition-colors duration-150 border-b border-amber-100"
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => toggleClientExpansion(clientName)}
                 >
                   <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       {expandedClients.has(clientName) ? (
-                        <ChevronDown className="h-5 w-5 text-amber-600" />
+                        <ChevronDown className="h-5 w-5" />
                       ) : (
-                        <ChevronRight className="h-5 w-5 text-amber-600" />
+                        <ChevronRight className="h-5 w-5" />
                       )}
                       
                       {/* תצוגת לוגו או שם לקוח */}
                        {clientSurveys[0]?.clients?.logo_url ? (
-                         <div className="flex items-center gap-4">
-                           <div className="bg-white p-2 rounded-lg border border-amber-200 opacity-75">
-                             <img 
-                               src={clientSurveys[0].clients.logo_url} 
-                               alt={clientName} 
-                               className="w-16 h-16 object-contain"
-                             />
-                           </div>
-                           <div className="flex flex-col">
-                             <span className="text-xl font-bold text-amber-800">{clientName}</span>
-                             <span className="text-sm text-amber-600">לקוח בארכיון</span>
-                           </div>
+                         <div className="flex items-center gap-3">
+                           <img 
+                             src={clientSurveys[0].clients.logo_url} 
+                             alt={clientName} 
+                             className="w-12 h-12 object-contain rounded"
+                           />
+                           <span className="text-sm text-muted-foreground">{clientName}</span>
                          </div>
                        ) : (
-                         <div className="flex items-center gap-4">
-                           <div className="bg-gradient-to-br from-amber-500 to-amber-600 p-4 rounded-lg text-white font-bold text-xl opacity-75">
-                             {clientName.charAt(0)}
-                           </div>
-                           <div className="flex flex-col">
-                             <span className="text-xl font-bold text-amber-800">{clientName}</span>
-                             <span className="text-sm text-amber-600">לקוח בארכיון</span>
-                           </div>
-                         </div>
+                         <span>{clientName}</span>
                        )}
                       
-                      <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 font-semibold">
+                      <Badge variant="outline" className="bg-muted">
                         {clientSurveys.length} סקר{clientSurveys.length > 1 ? "ים" : ""}
                       </Badge>
                     </div>
@@ -252,9 +236,9 @@ const Archive = () => {
                 </CardHeader>
                 
                 {expandedClients.has(clientName) && (
-                  <CardContent className="p-0">
+                  <CardContent className="space-y-0">
                     {/* כותרות עמודות */}
-                    <div className={`gap-4 p-4 bg-gradient-to-r from-amber-100 to-amber-50 border-b border-amber-200 font-semibold text-sm text-amber-800 text-center ${profile && ['admin', 'manager'].includes(profile.role) ? 'grid grid-cols-7' : 'grid grid-cols-6'}`}>
+                    <div className={`gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-center ${profile && ['admin', 'manager'].includes(profile.role) ? 'grid grid-cols-7' : 'grid grid-cols-6'}`}>
                       <div>שם המערכת</div>
                       <div>סטטוס</div>
                       <div>תאריך קבלת הסקר</div>
@@ -267,10 +251,10 @@ const Archive = () => {
                     </div>
 
                     {clientSurveys.map((survey: any) => (
-                      <div key={survey.id} className={`gap-4 p-4 border-b border-amber-100 hover:bg-amber-50/70 transition-colors items-center min-h-[80px] ${profile && ['admin', 'manager'].includes(profile.role) ? 'grid grid-cols-7' : 'grid grid-cols-6'}`}>
+                      <div key={survey.id} className={`gap-4 p-4 border-b hover:bg-muted/50 transition-colors items-center min-h-[80px] ${profile && ['admin', 'manager'].includes(profile.role) ? 'grid grid-cols-7' : 'grid grid-cols-6'}`}>
                         {/* שם המערכת */}
                         <div className="text-center">
-                          <div className="font-semibold text-sm text-amber-800">{survey.system_name}</div>
+                          <div className="font-medium text-sm">{survey.system_name}</div>
                         </div>
 
                         {/* סטטוס */}
@@ -285,21 +269,21 @@ const Archive = () => {
 
                         {/* תאריך קבלת הסקר */}
                         <div className="text-center">
-                          <div className="text-sm text-amber-700">
+                          <div className="text-sm text-muted-foreground">
                             {survey.received_date ? new Date(survey.received_date).toLocaleDateString('he-IL') : "לא הוזן"}
                           </div>
                         </div>
 
                         {/* אנשי קשר */}
                         <div className="text-center">
-                          <div className="text-sm text-amber-700">
+                          <div className="text-sm text-muted-foreground">
                             {survey.contacts?.length || 0} אנשי קשר
                           </div>
                         </div>
 
                         {/* תאריך ביצוע הסקר */}
                         <div className="text-center">
-                          <div className="text-sm text-amber-700">
+                          <div className="text-sm text-muted-foreground">
                             {new Date(survey.survey_date).toLocaleDateString('he-IL')}
                           </div>
                         </div>
@@ -307,7 +291,7 @@ const Archive = () => {
                         {/* אחראי על הסקר - רק למנהלים ואדמינים */}
                         {profile && ['admin', 'manager'].includes(profile.role) && (
                           <div className="text-center">
-                            <div className="text-sm text-amber-700">
+                            <div className="text-sm text-muted-foreground">
                               {survey.profiles ? `${survey.profiles.first_name} ${survey.profiles.last_name}` : "לא זמין"}
                             </div>
                           </div>
@@ -319,19 +303,17 @@ const Archive = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => restoreSurvey(survey.id)}
-                            className="h-8 px-3 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200 hover:border-green-300"
-                            title="שחזר לדף הבית"
+                            className="h-6 px-2"
                           >
-                            <RotateCcw className="h-4 w-4" />
+                            <RotateCcw className="h-3 w-3" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => deleteSurvey(survey.id)}
-                            className="h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300"
-                            title="מחק לצמיתות"
+                            className="text-destructive hover:text-destructive h-6 px-2"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
