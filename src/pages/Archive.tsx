@@ -198,13 +198,27 @@ const Archive = () => {
                   onClick={() => toggleClientExpansion(clientName)}
                 >
                   <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       {expandedClients.has(clientName) ? (
                         <ChevronDown className="h-5 w-5" />
                       ) : (
                         <ChevronRight className="h-5 w-5" />
                       )}
-                      <span>{clientName}</span>
+                      
+                      {/* תצוגת לוגו או שם לקוח */}
+                      {clientSurveys[0]?.clients?.logo_url ? (
+                        <div className="flex items-center gap-3">
+                          <img 
+                            src={clientSurveys[0].clients.logo_url} 
+                            alt={clientName} 
+                            className="w-8 h-8 object-contain rounded"
+                          />
+                          <span className="text-sm text-muted-foreground">{clientName}</span>
+                        </div>
+                      ) : (
+                        <span>{clientName}</span>
+                      )}
+                      
                       <Badge variant="outline" className="bg-muted">
                         {clientSurveys.length} סקר{clientSurveys.length > 1 ? "ים" : ""}
                       </Badge>
@@ -215,8 +229,7 @@ const Archive = () => {
                 {expandedClients.has(clientName) && (
                   <CardContent className="space-y-0">
                     {/* כותרות עמודות */}
-                    <div className="grid grid-cols-7 gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-center">
-                      <div>לקוח</div>
+                    <div className="grid grid-cols-6 gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-center">
                       <div>שם המערכת</div>
                       <div>סטטוס</div>
                       <div>תאריך קבלת הסקר</div>
@@ -226,25 +239,7 @@ const Archive = () => {
                     </div>
 
                     {clientSurveys.map((survey: any) => (
-                      <div key={survey.id} className="grid grid-cols-7 gap-4 p-4 border-b hover:bg-muted/50 transition-colors items-center min-h-[80px]">
-                        {/* לוגו/שם לקוח */}
-                        <div className="text-center">
-                          <div className="flex flex-col items-center gap-2">
-                            {survey.clients?.logo_url ? (
-                              <img 
-                                src={survey.clients.logo_url} 
-                                alt={survey.clients.name} 
-                                className="w-12 h-12 object-contain rounded"
-                              />
-                            ) : (
-                              <div className="w-12 h-12 bg-muted/50 rounded flex items-center justify-center text-xs text-muted-foreground">
-                                {survey.clients?.name?.substring(0, 2)}
-                              </div>
-                            )}
-                            <div className="text-xs text-muted-foreground">{survey.clients?.name}</div>
-                          </div>
-                        </div>
-
+                      <div key={survey.id} className="grid grid-cols-6 gap-4 p-4 border-b hover:bg-muted/50 transition-colors items-center min-h-[80px]">
                         {/* שם המערכת */}
                         <div className="text-center">
                           <div className="font-medium text-sm">{survey.system_name}</div>

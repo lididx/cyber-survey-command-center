@@ -215,12 +215,27 @@ const Dashboard = () => {
               </Button>
             </CardContent>
           </Card> : <div className="space-y-4">
-            {Object.entries(groupedSurveys).map(([clientName, clientSurveys]) => <Card key={clientName}>
+            {Object.entries(groupedSurveys).map(([clientName, clientSurveys]) => (
+              <Card key={clientName}>
                 <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleClientExpansion(clientName)}>
                   <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       {expandedClients.has(clientName) ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-                      <span>{clientName}</span>
+                      
+                      {/* תצוגת לוגו או שם לקוח */}
+                      {clientSurveys[0]?.clients?.logo_url ? (
+                        <div className="flex items-center gap-3">
+                          <img 
+                            src={clientSurveys[0].clients.logo_url} 
+                            alt={clientName} 
+                            className="w-8 h-8 object-contain rounded"
+                          />
+                          <span className="text-sm text-muted-foreground">{clientName}</span>
+                        </div>
+                      ) : (
+                        <span>{clientName}</span>
+                      )}
+                      
                       <Badge variant="secondary">
                         {clientSurveys.length} סקר{clientSurveys.length > 1 ? "ים" : ""}
                       </Badge>
@@ -230,8 +245,7 @@ const Dashboard = () => {
                 
                 {expandedClients.has(clientName) && <CardContent className="space-y-4">
                     {/* כותרות טבלה */}
-                    <div className="grid grid-cols-1 md:grid-cols-7 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm">
-                      <div className="text-center">לקוח</div>
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm">
                       <div className="text-center">שם המערכת</div>
                       <div className="text-center">סטטוס</div>
                       <div className="text-center">תאריך קבלת הסקר</div>
@@ -241,32 +255,13 @@ const Dashboard = () => {
                     </div>
                     
                     {clientSurveys.map(survey => {
-              const primaryContact = survey.contacts[0];
-              const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
-              return <div key={survey.id} className="border rounded-lg p-4 my-2">
-                          <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-center min-h-[60px]">
-                            {/* לוגו/שם לקוח */}
-                            <div className="text-center">
-                              <div className="flex flex-col items-center gap-2">
-                                {survey.clients?.logo_url ? (
-                                  <img 
-                                    src={survey.clients.logo_url} 
-                                    alt={survey.clients.name} 
-                                    className="w-12 h-12 object-contain rounded"
-                                  />
-                                ) : (
-                                  <div className="w-12 h-12 bg-muted/50 rounded flex items-center justify-center text-xs text-muted-foreground">
-                                    {survey.clients?.name?.substring(0, 2)}
-                                  </div>
-                                )}
-                                <div className="text-xs text-muted-foreground">{survey.clients?.name}</div>
-                              </div>
-                            </div>
-                            
-                            {/* שם המערכת */}
-                            <div className="text-center">
-                              <div className="font-medium text-sm">{survey.system_name}</div>
-                            </div>
+                      const primaryContact = survey.contacts[0];
+                      const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
+                      return (
+                        <div key={survey.id} className="border rounded-lg p-4 my-2">
+                          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center min-h-[60px]">
+                            {/* שם המערכת בלבד */}
+                            <div className="font-medium text-center">{survey.system_name}</div>
                             
                             <div>
                               <Select value={survey.status} onValueChange={value => updateSurveyStatus(survey.id, value)}>
@@ -283,9 +278,11 @@ const Dashboard = () => {
                                   </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {statusOptions.map(option => <SelectItem key={option.value} value={option.value}>
+                                  {statusOptions.map(option => (
+                                    <SelectItem key={option.value} value={option.value}>
                                       {option.label}
-                                    </SelectItem>)}
+                                    </SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                             </div>
@@ -299,13 +296,17 @@ const Dashboard = () => {
                                 {primaryContact ? `${primaryContact.first_name} ${primaryContact.last_name}` : "אין איש קשר"}
                               </div>
                               <div className="flex gap-1 justify-center">
-                                {primaryContact?.phone && <Button variant="outline" size="sm" onClick={() => window.open(`https://wa.me/972${primaryContact.phone.replace(/\D/g, '').slice(1)}`, '_blank')} title="פתח ב-WhatsApp">
+                                {primaryContact?.phone && (
+                                  <Button variant="outline" size="sm" onClick={() => window.open(`https://wa.me/972${primaryContact.phone.replace(/\D/g, '').slice(1)}`, '_blank')} title="פתח ב-WhatsApp">
                                     <MessageSquare className="h-3 w-3" />
-                                  </Button>}
+                                  </Button>
+                                )}
                                 
-                                {primaryContact?.email && <Button variant="outline" size="sm" onClick={() => window.open(`mailto:${primaryContact.email}`, '_blank')} title="שלח מייל">
+                                {primaryContact?.email && (
+                                  <Button variant="outline" size="sm" onClick={() => window.open(`mailto:${primaryContact.email}`, '_blank')} title="שלח מייל">
                                     <Mail className="h-3 w-3" />
-                                  </Button>}
+                                  </Button>
+                                )}
                               </div>
                             </div>
                             
@@ -315,23 +316,23 @@ const Dashboard = () => {
                             
                             <div className="flex gap-1 flex-wrap justify-center">
                               <Button variant="outline" size="sm" title="עריכה" onClick={() => {
-                      setSelectedSurvey(survey);
-                      setShowEditDialog(true);
-                    }}>
+                                setSelectedSurvey(survey);
+                                setShowEditDialog(true);
+                              }}>
                                 <Edit className="h-3 w-3" />
                               </Button>
                               
                               <Button variant="outline" size="sm" title="תבנית מייל" onClick={() => {
-                      setSelectedSurvey(survey);
-                      setShowEmailDialog(true);
-                    }}>
+                                setSelectedSurvey(survey);
+                                setShowEmailDialog(true);
+                              }}>
                                 <Mail className="h-3 w-3" />
                               </Button>
                               
                               <Button variant="outline" size="sm" title="היסטוריית שינויים" onClick={() => {
-                      setSelectedSurvey(survey);
-                      setShowHistoryDialog(true);
-                    }}>
+                                setSelectedSurvey(survey);
+                                setShowHistoryDialog(true);
+                              }}>
                                 <History className="h-3 w-3" />
                               </Button>
                               
@@ -344,11 +345,15 @@ const Dashboard = () => {
                               </Button>
                             </div>
                           </div>
-                        </div>;
-            })}
-                  </CardContent>}
-              </Card>)}
-          </div>}
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
 
         {showAddDialog && <AddSurveyDialog open={showAddDialog} onOpenChange={setShowAddDialog} onSuccess={fetchSurveys} />}
 
