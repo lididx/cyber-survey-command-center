@@ -206,7 +206,8 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-foreground">דשבורד סקרים</h1>
         </div>
 
-        {Object.keys(groupedSurveys).length === 0 ? <Card>
+        {Object.keys(groupedSurveys).length === 0 ? (
+          <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <p className="text-muted-foreground text-lg mb-4">אין סקרים פתוחים כרגע</p>
               <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
@@ -214,7 +215,9 @@ const Dashboard = () => {
                 הוסף סקר ראשון
               </Button>
             </CardContent>
-          </Card> : <div className="space-y-4">
+          </Card>
+        ) : (
+          <div className="space-y-4">
             {Object.entries(groupedSurveys).map(([clientName, clientSurveys]) => (
               <Card key={clientName}>
                 <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleClientExpansion(clientName)}>
@@ -243,7 +246,8 @@ const Dashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 
-                {expandedClients.has(clientName) && <CardContent className="space-y-4">
+                {expandedClients.has(clientName) && (
+                    <CardContent className="space-y-4">
                     {/* כותרות טבלה */}
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm">
                       <div className="text-center">שם המערכת</div>
