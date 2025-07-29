@@ -34,6 +34,7 @@ interface Survey {
 }
 const Dashboard = () => {
   const {
+    user,
     profile
   } = useAuth();
   const {
@@ -75,13 +76,14 @@ const Dashboard = () => {
       setLoading(true);
       let query = supabase.from("surveys").select(`
           *,
-          clients (name),
-          contacts (*)
+          clients (name, logo_url),
+          contacts (*),
+          profiles!inner(first_name, last_name, role)
         `).eq("is_archived", false);
 
       // If user is not admin or manager, only show their own surveys
       if (profile && !['admin', 'manager'].includes(profile.role)) {
-        query = query.eq("user_id", profile.id);
+        query = query.eq("user_id", user?.id);
       }
 
       const { data, error } = await query.order("created_at", {

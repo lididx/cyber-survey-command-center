@@ -29,7 +29,7 @@ interface Survey {
 }
 
 const Archive = () => {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,12 +37,22 @@ const Archive = () => {
 
   const statusLabels: Record<string, string> = {
     received: "התקבל",
-    email_sent_to_admin: "נשלח מייל תיאום למנהל המערכת",
+    email_sent_to_admin: "נשלח מייל תיאום למנהל מערכת",
     meeting_scheduled: "פגישה נקבעה",
     in_writing: "בכתיבה",
     completion_questions_with_admin: "שאלות השלמה מול מנהל מערכת",
     chen_review: "בבקרה של חן",
     completed: "הסתיים"
+  };
+
+  const statusColors: Record<string, string> = {
+    received: "#4FC3F7",
+    email_sent_to_admin: "#7E57C2",
+    meeting_scheduled: "#81C784",
+    in_writing: "#FFB74D",
+    completion_questions_with_admin: "#FB8C00",
+    chen_review: "#8E24AA",
+    completed: "#388E3C"
   };
 
   const fetchArchivedSurveys = async () => {
@@ -52,14 +62,15 @@ const Archive = () => {
         .from("surveys")
         .select(`
           *,
-          clients (name),
-          contacts (*)
+          clients (name, logo_url),
+          contacts (*),
+          profiles!inner(first_name, last_name, role)
         `)
         .eq("is_archived", true);
 
       // If user is not admin or manager, only show their own surveys
       if (profile && !['admin', 'manager'].includes(profile.role)) {
-        query = query.eq("user_id", profile.id);
+        query = query.eq("user_id", user?.id);
       }
 
       const { data, error } = await query.order("created_at", { ascending: false });
@@ -202,82 +213,81 @@ const Archive = () => {
                 </CardHeader>
                 
                 {expandedClients.has(clientName) && (
-                  <CardContent className="space-y-4">
-                    {clientSurveys.map((survey) => {
-                      const primaryContact = survey.contacts[0];
-                      
-                      return (
-                        <div key={survey.id} className="border rounded-lg p-4 space-y-3 bg-background/50">
-                          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
-                            <div className="font-medium">{survey.system_name}</div>
-                            
-                            <div>
-                              <Badge variant="outline">
-                                {statusLabels[survey.status] || survey.status}
-                              </Badge>
+                  <CardContent className="space-y-0">
+                    {/* כותרות עמודות */}
+                    <div className="grid grid-cols-6 gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-center">
+                      <div>שם המערכת</div>
+                      <div>סטטוס</div>
+                      <div>תאריך קבלת הסקר</div>
+                      <div>אנשי קשר</div>
+                      <div>תאריך ביצוע הסקר</div>
+                      <div>פעולות</div>
+                    </div>
+
+                    {clientSurveys.map((survey: any) => (
+                      <div key={survey.id} className="grid grid-cols-6 gap-4 p-4 border-b hover:bg-muted/50 transition-colors items-center min-h-[80px]">
+                        {/* שם המערכת */}
+                        <div className="text-center">
+                          <div className="font-medium text-sm">{survey.system_name}</div>
+                          {profile?.role && ['admin', 'manager'].includes(profile.role) && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              בודק: {survey.profiles?.first_name} {survey.profiles?.last_name}
                             </div>
-                            
-                            <div className="text-sm text-muted-foreground">
-                              {new Date(survey.survey_date).toLocaleDateString("he-IL")}
-                            </div>
-                            
-                            <div className="text-sm">
-                              {primaryContact ? (
-                                `${primaryContact.first_name} ${primaryContact.last_name}`
-                              ) : (
-                                "אין איש קשר"
-                              )}
-                            </div>
-                            
-                            <div className="flex gap-2">
-                              {primaryContact?.phone && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => window.open(`https://wa.me/972${primaryContact.phone.replace(/\D/g, '').slice(1)}`, '_blank')}
-                                  title="פתח ב-WhatsApp"
-                                >
-                                  <MessageSquare className="h-4 w-4" />
-                                </Button>
-                              )}
-                              
-                              {primaryContact?.email && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => window.open(`mailto:${primaryContact.email}`, '_blank')}
-                                  title="שלח מייל"
-                                >
-                                  <Mail className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                            
-                            <div className="flex gap-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => restoreSurvey(survey.id)}
-                                title="שחזר לדף הבית"
-                                className="text-green-600 hover:text-green-700"
-                              >
-                                <RotateCcw className="h-4 w-4" />
-                              </Button>
-                              
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => deleteSurvey(survey.id)}
-                                title="מחק לצמיתות"
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+                          )}
+                        </div>
+
+                        {/* סטטוס */}
+                        <div className="text-center">
+                          <div 
+                            className="inline-block px-3 py-1 rounded-full text-white text-xs font-medium"
+                            style={{ backgroundColor: statusColors[survey.status] }}
+                          >
+                            {statusLabels[survey.status]}
                           </div>
                         </div>
-                      );
-                    })}
+
+                        {/* תאריך קבלת הסקר */}
+                        <div className="text-center">
+                          <div className="text-sm text-muted-foreground">
+                            {survey.received_date ? new Date(survey.received_date).toLocaleDateString('he-IL') : "לא הוזן"}
+                          </div>
+                        </div>
+
+                        {/* אנשי קשר */}
+                        <div className="text-center">
+                          <div className="text-sm text-muted-foreground">
+                            {survey.contacts?.length || 0} אנשי קשר
+                          </div>
+                        </div>
+
+                        {/* תאריך ביצוע הסקר */}
+                        <div className="text-center">
+                          <div className="text-sm text-muted-foreground">
+                            {new Date(survey.survey_date).toLocaleDateString('he-IL')}
+                          </div>
+                        </div>
+
+                        {/* פעולות */}
+                        <div className="flex justify-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => restoreSurvey(survey.id)}
+                            className="h-6 px-2"
+                          >
+                            <RotateCcw className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteSurvey(survey.id)}
+                            className="text-destructive hover:text-destructive h-6 px-2"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </CardContent>
                 )}
               </Card>

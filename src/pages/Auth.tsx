@@ -168,15 +168,6 @@ const Auth = () => {
             </Button>
           </form>
 
-          <div className="mt-4 text-center">
-            <Button
-              variant="link"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm"
-            >
-              {isLogin ? "אין לך חשבון? הירשם כאן" : "יש לך חשבון? התחבר כאן"}
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>
