@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, User, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createAdminUserManually } from "@/utils/createAdminUserManually";
+import UserManagementDialog from "@/components/UserManagementDialog";
 
 interface Client {
   id: string;
@@ -22,6 +22,13 @@ const Management = () => {
   const [loading, setLoading] = useState(true);
   const [newClientName, setNewClientName] = useState("");
   const [addingClient, setAddingClient] = useState(false);
+  const [showUserManagement, setShowUserManagement] = useState(false);
+  const [stats, setStats] = useState({
+    totalSurveys: 0,
+    activeSurveys: 0,
+    archivedSurveys: 0,
+    surveyorStats: [] as Array<{ name: string; count: number }>
+  });
 
   const fetchClients = async () => {
     try {
@@ -41,6 +48,56 @@ const Management = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      // Get total surveys
+      const { count: totalSurveys } = await supabase
+        .from("surveys")
+        .select("*", { count: "exact", head: true });
+
+      // Get active surveys
+      const { count: activeSurveys } = await supabase
+        .from("surveys")
+        .select("*", { count: "exact", head: true })
+        .eq("is_archived", false);
+
+      // Get archived surveys
+      const { count: archivedSurveys } = await supabase
+        .from("surveys")
+        .select("*", { count: "exact", head: true })
+        .eq("is_archived", true);
+
+      // Get surveyor stats
+      const { data: surveyorData } = await supabase
+        .from("surveys")
+        .select(`
+          user_id,
+          profiles!inner(first_name, last_name, role)
+        `)
+        .eq("profiles.role", "surveyor");
+
+      const surveyorStats = surveyorData?.reduce((acc: any[], survey: any) => {
+        const name = `${survey.profiles.first_name} ${survey.profiles.last_name}`;
+        const existing = acc.find(s => s.name === name);
+        if (existing) {
+          existing.count++;
+        } else {
+          acc.push({ name, count: 1 });
+        }
+        return acc;
+      }, []) || [];
+
+      setStats({
+        totalSurveys: totalSurveys || 0,
+        activeSurveys: activeSurveys || 0,
+        archivedSurveys: archivedSurveys || 0,
+        surveyorStats: surveyorStats.sort((a, b) => b.count - a.count)
+      });
+    } catch (error: any) {
+      console.error("Error fetching stats:", error);
     }
   };
 
@@ -108,6 +165,7 @@ const Management = () => {
 
   useEffect(() => {
     fetchClients();
+    fetchStats();
   }, []);
 
   if (loading) {
@@ -122,129 +180,130 @@ const Management = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-6" dir="rtl">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-foreground">ניהול מערכת</h1>
         </div>
 
-        {/* Add New Client */}
-        <Card>
-          <CardHeader>
-            <CardTitle>הוסף לקוח חדש</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={addClient} className="flex gap-4 items-end">
-              <div className="flex-1 space-y-2">
-                <Label htmlFor="clientName">שם הלקוח</Label>
-                <Input
-                  id="clientName"
-                  value={newClientName}
-                  onChange={(e) => setNewClientName(e.target.value)}
-                  placeholder="הזן שם לקוח חדש"
-                  dir="rtl"
-                  required
-                />
-              </div>
-              <Button type="submit" disabled={addingClient || !newClientName.trim()}>
-                {addingClient ? "מוסיף..." : (
-                  <>
-                    <Plus className="h-4 w-4 mr-2" />
-                    הוסף
-                  </>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Clients List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>רשימת לקוחות ({clients.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {clients.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">אין לקוחות במערכת</p>
-            ) : (
-              <div className="space-y-2">
-                {clients.map((client) => (
-                  <div
-                    key={client.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                      <div className="font-medium">{client.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        נוסף ב: {new Date(client.created_at).toLocaleDateString("he-IL")}
-                      </div>
-                    </div>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => deleteClient(client.id, client.name)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* System Setup */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              הגדרות מערכת
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  const result = await createAdminUserManually();
-                  toast({
-                    title: result.success ? "הצלחה" : "שגיאה",
-                    description: result.message,
-                    variant: result.success ? "default" : "destructive",
-                  });
-                }}
-                className="w-full justify-start"
-              >
-                <User className="h-4 w-4 mr-2" />
-                צור משתמש אדמין בסיסי
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Statistics Card */}
+        {/* Statistics Card - at the top */}
         <Card>
           <CardHeader>
             <CardTitle>סטטיסטיקות מערכת</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="text-center p-4 border rounded-lg">
                 <div className="text-2xl font-bold text-primary">{clients.length}</div>
                 <div className="text-sm text-muted-foreground">לקוחות במערכת</div>
               </div>
               <div className="text-center p-4 border rounded-lg">
-                <div className="text-2xl font-bold text-green-600">0</div>
+                <div className="text-2xl font-bold text-green-600">{stats.activeSurveys}</div>
                 <div className="text-sm text-muted-foreground">סקרים פעילים</div>
               </div>
               <div className="text-center p-4 border rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">0</div>
+                <div className="text-2xl font-bold text-orange-600">{stats.archivedSurveys}</div>
                 <div className="text-sm text-muted-foreground">סקרים בארכיון</div>
               </div>
+              <div className="text-center p-4 border rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{stats.totalSurveys}</div>
+                <div className="text-sm text-muted-foreground">סה"כ סקרים</div>
+              </div>
             </div>
+
+            {/* Surveyor Stats */}
+            {stats.surveyorStats.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3">סקרים לפי בודק:</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {stats.surveyorStats.map((surveyor, index) => (
+                    <div key={index} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                      <span className="font-medium">{surveyor.name}</span>
+                      <span className="text-sm bg-primary text-primary-foreground px-2 py-1 rounded">
+                        {surveyor.count} סקרים
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Client Management - Compact */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>ניהול לקוחות</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Add New Client */}
+              <form onSubmit={addClient} className="flex gap-2">
+                <Input
+                  value={newClientName}
+                  onChange={(e) => setNewClientName(e.target.value)}
+                  placeholder="שם לקוח חדש"
+                  dir="rtl"
+                  required
+                  className="flex-1"
+                />
+                <Button type="submit" disabled={addingClient || !newClientName.trim()} size="sm">
+                  {addingClient ? "מוסיף..." : "הוסף"}
+                </Button>
+              </form>
+
+              {/* Clients List */}
+              <div className="max-h-40 overflow-y-auto space-y-1">
+                {clients.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-4 text-sm">אין לקוחות במערכת</p>
+                ) : (
+                  clients.map((client) => (
+                    <div
+                      key={client.id}
+                      className="flex items-center justify-between p-2 border rounded hover:bg-muted/50 transition-colors text-sm"
+                    >
+                      <span className="font-medium">{client.name}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteClient(client.id, client.name)}
+                        className="text-destructive hover:text-destructive h-6 w-6 p-0"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* User Management */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                ניהול משתמשים
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={() => setShowUserManagement(true)}
+                className="w-full"
+              >
+                <User className="h-4 w-4 mr-2" />
+                פתח ניהול משתמשים
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        
+        {showUserManagement && (
+          <UserManagementDialog
+            open={showUserManagement}
+            onOpenChange={setShowUserManagement}
+          />
+        )}
       </div>
     </Layout>
   );

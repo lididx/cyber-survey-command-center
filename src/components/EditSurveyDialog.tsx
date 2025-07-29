@@ -133,7 +133,9 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
             <Label htmlFor="client_id">לקוח</Label>
             <Select value={formData.client_id} onValueChange={(value) => setFormData(prev => ({ ...prev, client_id: value }))}>
               <SelectTrigger>
-                <SelectValue placeholder="בחר לקוח" />
+                <SelectValue placeholder="בחר לקוח">
+                  {clients.find(c => c.id === formData.client_id)?.name || "בחר לקוח"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {clients.map((client) => (

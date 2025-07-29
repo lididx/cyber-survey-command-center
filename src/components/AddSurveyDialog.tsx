@@ -114,8 +114,8 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
           client_id: formData.clientId,
           system_name: formData.systemName,
           system_description: formData.systemDescription,
-          survey_date: formData.surveyDate,
-          received_date: formData.receivedDate,
+          survey_date: formData.surveyDate || null,
+          received_date: formData.receivedDate || null,
           status: formData.status
         })
         .select()
@@ -182,10 +182,10 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
-          <DialogTitle>הוסף סקר חדש</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-right">הוסף סקר חדש</DialogTitle>
+          <DialogDescription className="text-right">
             מלא את פרטי הסקר ואנשי הקשר
           </DialogDescription>
         </DialogHeader>
@@ -353,12 +353,12 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              ביטול
-            </Button>
+          <div className="flex justify-start gap-2">
             <Button type="submit" disabled={loading}>
               {loading ? "מוסיף..." : "הוסף סקר"}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              ביטול
             </Button>
           </div>
         </form>

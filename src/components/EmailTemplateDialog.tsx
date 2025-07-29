@@ -10,30 +10,49 @@ interface EmailTemplateDialogProps {
   surveyName: string;
   clientName: string;
   contactEmail?: string;
+  contactNames?: string[];
+  userFirstName?: string;
+  userGender?: string;
 }
 
-const EmailTemplateDialog = ({ open, onOpenChange, surveyName, clientName, contactEmail }: EmailTemplateDialogProps) => {
+const EmailTemplateDialog = ({ open, onOpenChange, surveyName, clientName, contactEmail, contactNames = [], userFirstName = "", userGender = "male" }: EmailTemplateDialogProps) => {
   const { toast } = useToast();
 
-  const emailTemplate = `נושא: בקשה לתיאום פגישה - סקר ${surveyName}
+  const genderText = {
+    surveyor: userGender === "female" ? "סוקרת" : "סוקר",
+    requesting: userGender === "female" ? "מבקשת" : "מבקש"
+  };
 
-שלום רב,
+  const contactNamesText = contactNames.length > 0 ? contactNames.join(", ") : "צוות המערכת";
 
-אני פונה אליכם בעקבות הסקר שהתקבל עבור מערכת ${surveyName} של ${clientName}.
+  const emailSubject = `קביעת סקר אפליקציה למערכת ${surveyName} - ${clientName}`;
 
-במטרה להשלים את תהליך הסקר בצורה יעילה ומקצועית, אני מבקש לתאם פגישה לדיון על הנושאים הבאים:
+  const emailTemplate = `נושא: ${emailSubject}
 
-• סקירת דרישות המערכת
-• הבהרת שאלות טכניות
-• תיאום לוחות זמנים
-• הגדרת אבני דרך
+היי ${contactNamesText},
 
-האם ניתן לתאם פגישה בימים הקרובים?
+שמי ${userFirstName} אני ${genderText.surveyor} אפליקציה מטעם חברת Citadel העובדת עם ${clientName}, קיבלתי את המייל שלכם על מנת לתאם מולכם סקר אפליקציה למערכת ${surveyName}.
 
-אנא הודיעו על זמינותכם.
+להלן הנושאים עליהם נעבור במהלך סקר האפליקציה על המערכת:
+	•	תיאור המערכת (מידע כללי על המערכת הכולל גם גרסאות שפות תכנות)
+	•	הזדהות למערכת (דרך ההזדהות למערכת, מדיניות סיסמאות, אופן ומיקום שמירת סיסמאות ועוד..)
+	•	ממשקים מול מערכות אחרות (ממשקים העובדים מול המערכת / דרכי ההתממשקות \ אופן ההתממשקות – ירידה לפרטים טכניים)
+	•	משתמשים והרשאות (מעבר על סוגי ההרשאות והקבוצות במערכת, אופן הוספת הרשאות, ניהול קבוצות ועוד..)
+	•	ארכיטקטורה אפליקטיבית (שרתים, שמות שרתים, גרסאות מערכות הפעלה וגרסאות שירותים – שירותי Web/ מסד נתונים וכו' )
+	•	עבודה מול בסיס הנתונים (משתמשים אפליקטיביים, סוגי שאילתות בבסיס הנתונים, הרשאות המשתמש האפליקטיבי ואופן שמירת פרטי זיהוי)
+	•	לוגים וחיווים (סוגי חיווים, זמן שמירה, מיקום ועוד..)
+	•	בדיקת קלטים (בדיקה האם קיימת ולידציה על הקלטים המתקבלים למערכת, בדיקה של מנגנוני העלאת קבצים למערכת במידה וקיים)
+	•	סביבות עבודה
+	•	תווך הצפנה של המערכת
 
-בברכה,
-[שם המבצע]
+כמה דגשים: 
+1.	הסקר הינו סקר תשאולי בלבד.
+2.	במהלך הסקר אצטרך לקחת תצלומי מסך מתוך המערכת לכן יש צורך בגישה מלאה למערכת בזמן הפגישה.
+3.	במידה ואתם חושבים שיש גורמים נוספים שיכולים לעזור במהלך הפגישה אתם מוזמנים להוסיף אותם.
+4.	אשמח שתשלחו לי מספר תאריכים בהם אתם זמינים לביצוע הפגישה.
+
+תודה רבה,
+${userFirstName}
 [פרטי יצירת קשר]`;
 
   const copyToClipboard = () => {
@@ -46,7 +65,7 @@ const EmailTemplateDialog = ({ open, onOpenChange, surveyName, clientName, conta
 
   const openEmailClient = () => {
     if (contactEmail) {
-      const subject = encodeURIComponent(`בקשה לתיאום פגישה - סקר ${surveyName}`);
+      const subject = encodeURIComponent(emailSubject);
       const body = encodeURIComponent(emailTemplate);
       window.open(`mailto:${contactEmail}?subject=${subject}&body=${body}`, '_blank');
     } else {
@@ -64,7 +83,7 @@ const EmailTemplateDialog = ({ open, onOpenChange, surveyName, clientName, conta
       <DialogContent className="max-w-2xl" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-right">
-            תבנית מייל לתיאום פגישה - {surveyName}
+            תבנית מייל לקביעת פגישה - {surveyName}
           </DialogTitle>
         </DialogHeader>
 

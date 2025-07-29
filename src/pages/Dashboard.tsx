@@ -56,6 +56,16 @@ const Dashboard = () => {
     chen_review: "בבקרה של חן",
     completed: "הסתיים"
   };
+
+  const statusColors: Record<string, string> = {
+    received: "#4FC3F7",
+    email_sent_to_admin: "#7E57C2",
+    meeting_scheduled: "#81C784",
+    in_writing: "#FFB74D",
+    completion_questions_with_admin: "#FB8C00",
+    chen_review: "#8E24AA",
+    completed: "#388E3C"
+  };
   const statusOptions = Object.entries(statusLabels).map(([value, label]) => ({
     value,
     label
@@ -213,25 +223,31 @@ const Dashboard = () => {
                 
                 {expandedClients.has(clientName) && <CardContent className="space-y-4">
                     {/* כותרות טבלה */}
-                    <div className="grid grid-cols-1 md:grid-cols-7 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm">
                       <div>שם המערכת</div>
                       <div>סטטוס</div>
-                      <div>תאריך ביצוע הסקר</div>
                       <div>תאריך קבלת הסקר</div>
                       <div>אנשי קשר</div>
-                      <div>יצירת קשר</div>
+                      <div>תאריך ביצוע הסקר</div>
                       <div>פעולות</div>
                     </div>
                     
                     {clientSurveys.map(survey => {
               const primaryContact = survey.contacts[0];
+              const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
               return <div key={survey.id} className="border rounded-lg p-4 px-0 py-[17px] my-[7px] mx-0">
-                          <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-center">
+                          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
                             <div className="font-medium truncate">{survey.system_name}</div>
                             
                             <div>
+                              <Badge 
+                                style={{ backgroundColor: statusColors[survey.status], color: 'white' }}
+                                className="text-xs"
+                              >
+                                {statusLabels[survey.status]}
+                              </Badge>
                               <Select value={survey.status} onValueChange={value => updateSurveyStatus(survey.id, value)}>
-                                <SelectTrigger>
+                                <SelectTrigger className="mt-1">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -243,25 +259,26 @@ const Dashboard = () => {
                             </div>
                             
                             <div className="text-sm">
-                              {new Date(survey.survey_date).toLocaleDateString("he-IL")}
-                            </div>
-                            
-                            <div className="text-sm">
                               {survey.received_date ? new Date(survey.received_date).toLocaleDateString("he-IL") : "לא צוין"}
                             </div>
                             
-                            <div className="text-sm">
-                              {primaryContact ? `${primaryContact.first_name} ${primaryContact.last_name}` : "אין איש קשר"}
+                            <div className="text-sm space-y-1">
+                              <div>
+                                {primaryContact ? `${primaryContact.first_name} ${primaryContact.last_name}` : "אין איש קשר"}
+                              </div>
+                              <div className="flex gap-1">
+                                {primaryContact?.phone && <Button variant="outline" size="sm" onClick={() => window.open(`https://wa.me/972${primaryContact.phone.replace(/\D/g, '').slice(1)}`, '_blank')} title="פתח ב-WhatsApp">
+                                    <MessageSquare className="h-3 w-3" />
+                                  </Button>}
+                                
+                                {primaryContact?.email && <Button variant="outline" size="sm" onClick={() => window.open(`mailto:${primaryContact.email}`, '_blank')} title="שלח מייל">
+                                    <Mail className="h-3 w-3" />
+                                  </Button>}
+                              </div>
                             </div>
                             
-                            <div className="flex gap-1 flex-wrap">
-                              {primaryContact?.phone && <Button variant="outline" size="sm" onClick={() => window.open(`https://wa.me/972${primaryContact.phone.replace(/\D/g, '').slice(1)}`, '_blank')} title="פתח ב-WhatsApp">
-                                  <MessageSquare className="h-3 w-3" />
-                                </Button>}
-                              
-                              {primaryContact?.email && <Button variant="outline" size="sm" onClick={() => window.open(`mailto:${primaryContact.email}`, '_blank')} title="שלח מייל">
-                                  <Mail className="h-3 w-3" />
-                                </Button>}
+                            <div className="text-sm">
+                              {new Date(survey.survey_date).toLocaleDateString("he-IL")}
                             </div>
                             
                             <div className="flex gap-1 flex-wrap">
@@ -305,7 +322,16 @@ const Dashboard = () => {
 
         {showHistoryDialog && selectedSurvey && <SurveyHistoryDialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog} surveyId={selectedSurvey.id} surveyName={selectedSurvey.system_name} />}
 
-        {showEmailDialog && selectedSurvey && <EmailTemplateDialog open={showEmailDialog} onOpenChange={setShowEmailDialog} surveyName={selectedSurvey.system_name} clientName={selectedSurvey.clients.name} contactEmail={selectedSurvey.contacts[0]?.email} />}
+        {showEmailDialog && selectedSurvey && <EmailTemplateDialog 
+          open={showEmailDialog} 
+          onOpenChange={setShowEmailDialog} 
+          surveyName={selectedSurvey.system_name} 
+          clientName={selectedSurvey.clients.name} 
+          contactEmail={selectedSurvey.contacts[0]?.email}
+          contactNames={selectedSurvey.contacts.map(c => `${c.first_name} ${c.last_name}`)}
+          userFirstName={profile?.first_name}
+          userGender={profile?.gender}
+        />}
 
         {showEditDialog && selectedSurvey && <EditSurveyDialog open={showEditDialog} onOpenChange={setShowEditDialog} survey={selectedSurvey} onSuccess={fetchSurveys} />}
       </div>
