@@ -81,6 +81,11 @@ const Dashboard = () => {
     try {
       setLoading(true);
       
+      // Debug logging
+      console.log("Dashboard fetchSurveys - User:", user?.id);
+      console.log("Dashboard fetchSurveys - Profile:", profile);
+      console.log("Dashboard fetchSurveys - Profile role:", profile?.role);
+      
       let query = supabase.from("surveys").select(`
           *,
           clients (name, logo_url),
@@ -90,7 +95,10 @@ const Dashboard = () => {
 
       // If user is not admin or manager, only show their own surveys
       if (profile && !['admin', 'manager'].includes(profile.role)) {
+        console.log("Dashboard fetchSurveys - Filtering to user's surveys only");
         query = query.eq("user_id", user?.id);
+      } else {
+        console.log("Dashboard fetchSurveys - Admin/Manager: showing all surveys");
       }
 
       const { data, error } = await query.order("created_at", {

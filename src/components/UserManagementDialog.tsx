@@ -123,7 +123,12 @@ const UserManagementDialog = ({ open, onOpenChange }: UserManagementDialogProps)
         role: "surveyor"
       });
 
+      // Generate new password for next user
+      generateRandomPassword();
+      
       fetchProfiles();
+      
+      // Don't close dialog, stay in management page
     } catch (error: any) {
       toast({
         title: "שגיאה",
