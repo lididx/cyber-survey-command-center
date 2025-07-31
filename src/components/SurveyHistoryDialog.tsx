@@ -71,6 +71,8 @@ const SurveyHistoryDialog = ({ open, onOpenChange, surveyId, surveyName }: Surve
       if (surveyHistoryError) throw surveyHistoryError;
 
       // טעינת הערות מטבלת audit_logs
+      console.log("SurveyHistoryDialog - Loading audit logs for survey:", surveyId);
+      
       const { data: auditLogsData, error: auditLogsError } = await supabase
         .from("audit_logs")
         .select(`
@@ -84,6 +86,9 @@ const SurveyHistoryDialog = ({ open, onOpenChange, surveyId, surveyName }: Surve
         .eq("table_name", "surveys")
         .eq("action", "comment")
         .order("created_at", { ascending: false });
+
+      console.log("SurveyHistoryDialog - Audit logs data:", auditLogsData);
+      console.log("SurveyHistoryDialog - Audit logs error:", auditLogsError);
 
       if (auditLogsError) throw auditLogsError;
 

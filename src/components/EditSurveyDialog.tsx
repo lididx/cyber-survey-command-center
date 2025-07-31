@@ -236,24 +236,34 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
       }
 
       // הוספת הערות ל-audit log אם קיימות
+      console.log("EditSurveyDialog - Checking comments:", comments);
+      console.log("EditSurveyDialog - Comments trimmed:", comments.trim());
+      
       if (comments.trim()) {
         console.log("EditSurveyDialog - Adding comments to audit log:", comments.trim());
+        console.log("EditSurveyDialog - User ID:", user.id);
+        console.log("EditSurveyDialog - Survey ID:", survey.id);
         
-        const { error: auditError } = await supabase
+        const auditData = {
+          user_id: user.id,
+          table_name: "surveys",
+          record_id: survey.id,
+          action: "comment",
+          new_values: { comments: comments.trim() }
+        };
+        
+        console.log("EditSurveyDialog - Audit data to insert:", auditData);
+        
+        const { data: insertData, error: auditError } = await supabase
           .from("audit_logs")
-          .insert({
-            user_id: user.id,
-            table_name: "surveys",
-            record_id: survey.id,
-            action: "comment",
-            new_values: { comments: comments.trim() }
-          });
+          .insert(auditData)
+          .select();
 
         if (auditError) {
           console.error("EditSurveyDialog - Audit log error:", auditError);
           throw auditError;
         } else {
-          console.log("EditSurveyDialog - Comments added to audit log successfully");
+          console.log("EditSurveyDialog - Comments added to audit log successfully:", insertData);
         }
       } else {
         console.log("EditSurveyDialog - No comments to add to audit log");
