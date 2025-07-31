@@ -120,7 +120,11 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
   };
 
   useEffect(() => {
+    console.log("EditSurveyDialog useEffect - survey:", survey);
+    
     if (survey) {
+      console.log("EditSurveyDialog - Loading survey data:", survey);
+      
       setFormData({
         systemName: survey.system_name,
         systemDescription: survey.system_description || "",
@@ -140,8 +144,14 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
         role: contact.role
       })) || [];
       
+      console.log("EditSurveyDialog - Existing contacts:", existingContacts);
+      
       // Ensure at least one empty contact if no existing contacts
       setContacts(existingContacts.length > 0 ? existingContacts : [{ firstName: "", lastName: "", email: "", phone: "", role: "" }]);
+      
+      console.log("EditSurveyDialog - Form data set successfully");
+    } else {
+      console.log("EditSurveyDialog - No survey provided");
     }
   }, [survey]);
 
