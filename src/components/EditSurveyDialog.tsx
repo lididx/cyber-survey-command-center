@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import ContactDisplaySection from "./ContactDisplaySection";
 
@@ -18,6 +21,10 @@ interface Survey {
   last_email_bounce_date: string | null;
   status: string;
   client_id: string;
+  client?: {
+    id: string;
+    name: string;
+  };
   contacts?: Array<{
     id: string;
     first_name: string;
@@ -26,6 +33,14 @@ interface Survey {
     phone: string;
     role: string;
   }>;
+}
+
+interface Contact {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  role: string;
 }
 
 interface Client {
@@ -51,98 +66,174 @@ const statusOptions = [
 ];
 
 const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyDialogProps) => {
-  const [formData, setFormData] = useState({
-    system_name: "",
-    system_description: "",
-    survey_date: "",
-    received_date: "",
-    last_email_bounce_date: "",
-    status: "received",
-    client_id: ""
-  });
-  const [clients, setClients] = useState<Client[]>([]);
-  const [contacts, setContacts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
+  
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    systemName: "",
+    clientId: "",
+    systemDescription: "",
+    surveyDate: "",
+    receivedDate: "",
+    lastEmailBounceDate: "",
+    status: "received" as string
+  });
+  const [contacts, setContacts] = useState<Contact[]>([
+    { firstName: "", lastName: "", email: "", phone: "", role: "" }
+  ]);
+  const [comments, setComments] = useState("");
+
+  const fetchClients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .order("name");
+
+      if (error) throw error;
+      setClients(data || []);
+    } catch (error: any) {
+      toast({
+        title: "שגיאה",
+        description: "לא ניתן לטעון את רשימת הלקוחות",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const addContact = () => {
+    setContacts([...contacts, { firstName: "", lastName: "", email: "", phone: "", role: "" }]);
+  };
+
+  const removeContact = (index: number) => {
+    if (contacts.length > 1) {
+      setContacts(contacts.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateContact = (index: number, field: keyof Contact, value: string) => {
+    const updatedContacts = [...contacts];
+    updatedContacts[index][field] = value;
+    setContacts(updatedContacts);
+  };
 
   useEffect(() => {
     if (survey) {
       setFormData({
-        system_name: survey.system_name,
-        system_description: survey.system_description || "",
-        survey_date: survey.survey_date,
-        received_date: survey.received_date || "",
-        last_email_bounce_date: survey.last_email_bounce_date || "",
-        status: survey.status,
-        client_id: survey.client_id
+        systemName: survey.system_name,
+        systemDescription: survey.system_description || "",
+        surveyDate: survey.survey_date,
+        receivedDate: survey.received_date || "",
+        lastEmailBounceDate: survey.last_email_bounce_date || "",
+        status: survey.status as any,
+        clientId: survey.client_id
       });
-      setContacts(survey.contacts || []);
+      
+      // Convert existing contacts to the new format
+      const existingContacts = survey.contacts?.map(contact => ({
+        firstName: contact.first_name,
+        lastName: contact.last_name,
+        email: contact.email,
+        phone: contact.phone,
+        role: contact.role
+      })) || [];
+      
+      // Ensure at least one empty contact if no existing contacts
+      setContacts(existingContacts.length > 0 ? existingContacts : [{ firstName: "", lastName: "", email: "", phone: "", role: "" }]);
     }
   }, [survey]);
 
   useEffect(() => {
-    const fetchClients = async () => {
-      const { data } = await supabase
-        .from("clients")
-        .select("id, name")
-        .order("name");
-      
-      if (data) {
-        setClients(data);
-        
-        // If survey data exists, update form data after clients are loaded
-        if (survey) {
-          setFormData({
-            system_name: survey.system_name,
-            system_description: survey.system_description || "",
-            survey_date: survey.survey_date,
-            received_date: survey.received_date || "",
-            last_email_bounce_date: survey.last_email_bounce_date || "",
-            status: survey.status,
-            client_id: survey.client_id
-          });
-          setContacts(survey.contacts || []);
-        }
-      }
-    };
-
     if (open) {
       fetchClients();
     }
-  }, [open, survey]);
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!survey) return;
-
+    
+    if (!user || !survey) return;
+    
     setLoading(true);
+
     try {
-      const { error } = await supabase
+      // Update survey
+      const { error: surveyError } = await supabase
         .from("surveys")
         .update({
-          system_name: formData.system_name,
-          system_description: formData.system_description,
-          survey_date: formData.survey_date,
-          received_date: formData.received_date || null,
-          last_email_bounce_date: formData.last_email_bounce_date || null,
+          system_name: formData.systemName,
+          system_description: formData.systemDescription,
+          survey_date: formData.surveyDate ? formData.surveyDate : null,
+          received_date: formData.receivedDate ? formData.receivedDate : null,
+          last_email_bounce_date: formData.lastEmailBounceDate ? formData.lastEmailBounceDate : null,
           status: formData.status as any,
-          client_id: formData.client_id
+          client_id: formData.clientId
         })
         .eq("id", survey.id);
 
-      if (error) throw error;
+      if (surveyError) throw surveyError;
+
+      // Delete existing contacts for this survey
+      const { error: deleteError } = await supabase
+        .from("contacts")
+        .delete()
+        .eq("survey_id", survey.id);
+
+      if (deleteError) throw deleteError;
+
+      // Create new contacts - only if they have at least first name
+      const validContacts = contacts.filter(contact => 
+        contact.firstName.trim() || contact.lastName.trim() || contact.email.trim() || contact.phone.trim()
+      );
+
+      if (validContacts.length > 0) {
+        const contactsData = validContacts.map(contact => ({
+          survey_id: survey.id,
+          first_name: contact.firstName,
+          last_name: contact.lastName,
+          email: contact.email,
+          phone: contact.phone,
+          role: contact.role
+        }));
+
+        const { error: contactsError } = await supabase
+          .from("contacts")
+          .insert(contactsData);
+
+        if (contactsError) throw contactsError;
+      }
+
+      // Add audit log entry if comments were provided
+      if (comments.trim()) {
+        const { error: auditError } = await supabase
+          .from("audit_logs")
+          .insert({
+            user_id: user.id,
+            table_name: "surveys",
+            record_id: survey.id,
+            action: "comment",
+            new_values: { comments: comments.trim() }
+          });
+
+        if (auditError) throw auditError;
+      }
 
       toast({
         title: "הסקר עודכן בהצלחה",
         description: "פרטי הסקר נשמרו בהצלחה במערכת",
       });
 
+      // Reset comments
+      setComments("");
+      
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
       toast({
         title: "שגיאה",
-        description: "לא ניתן לעדכן את הסקר",
+        description: error.message || "לא ניתן לעדכן את הסקר",
         variant: "destructive",
       });
     } finally {
@@ -154,114 +245,208 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" dir="rtl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-right">עריכת סקר</DialogTitle>
+          <DialogDescription className="text-right">
+            ערוך את פרטי הסקר ואנשי הקשר
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="client_id">לקוח</Label>
-            <Select value={formData.client_id} onValueChange={(value) => setFormData(prev => ({ ...prev, client_id: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="בחר לקוח" />
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="system_name">שם המערכת</Label>
-            <Input
-              id="system_name"
-              value={formData.system_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, system_name: e.target.value }))}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="system_description">תיאור המערכת</Label>
-            <Textarea
-              id="system_description"
-              value={formData.system_description}
-              onChange={(e) => setFormData(prev => ({ ...prev, system_description: e.target.value }))}
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="survey_date">תאריך ביצוע הסקר</Label>
-            <Input
-              id="survey_date"
-              type="date"
-              value={formData.survey_date}
-              onChange={(e) => setFormData(prev => ({ ...prev, survey_date: e.target.value }))}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="received_date">תאריך קבלת הסקר</Label>
-            <Input
-              id="received_date"
-              type="date"
-              value={formData.received_date}
-              onChange={(e) => setFormData(prev => ({ ...prev, received_date: e.target.value }))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="status">סטטוס</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* שדה תאריך הקפצת מייל - רק עבור סטטוס שאלות השלמה */}
-          {formData.status === 'completion_questions_with_admin' && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="last_email_bounce_date">תאריך הקפצת מייל אחרון</Label>
+              <Label htmlFor="systemName">שם המערכת *</Label>
               <Input
-                id="last_email_bounce_date"
-                type="date"
-                value={formData.last_email_bounce_date}
-                onChange={(e) => setFormData(prev => ({ ...prev, last_email_bounce_date: e.target.value }))}
+                id="systemName"
+                value={formData.systemName}
+                onChange={(e) => setFormData({ ...formData, systemName: e.target.value })}
+                required
+                dir="rtl"
               />
             </div>
-          )}
 
-          {/* Contact Display Section */}
-          {contacts.length > 0 && (
-            <ContactDisplaySection contacts={contacts} />
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="clientId">לקוח *</Label>
+              <Select 
+                value={formData.clientId} 
+                onValueChange={(value) => setFormData({ ...formData, clientId: value })}
+                required
+              >
+                <SelectTrigger dir="rtl">
+                  <SelectValue placeholder="בחר לקוח" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="flex gap-2 justify-end">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              ביטול
-            </Button>
+            <div className="space-y-2">
+              <Label htmlFor="surveyDate">תאריך קביעת הסקר</Label>
+              <Input
+                id="surveyDate"
+                type="date"
+                value={formData.surveyDate}
+                onChange={(e) => setFormData({ ...formData, surveyDate: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="receivedDate">תאריך קבלת הסקר</Label>
+              <Input
+                id="receivedDate"
+                type="date"
+                value={formData.receivedDate}
+                onChange={(e) => setFormData({ ...formData, receivedDate: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">סטטוס</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={(value: string) => setFormData({ ...formData, status: value })}
+              >
+                <SelectTrigger dir="rtl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* שדה תאריך הקפצת מייל - רק עבור סטטוס שאלות השלמה */}
+            {formData.status === 'completion_questions_with_admin' && (
+              <div className="space-y-2">
+                <Label htmlFor="lastEmailBounceDate">תאריך הקפצת מייל אחרון</Label>
+                <Input
+                  id="lastEmailBounceDate"
+                  type="date"
+                  value={formData.lastEmailBounceDate}
+                  onChange={(e) => setFormData({ ...formData, lastEmailBounceDate: e.target.value })}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="systemDescription">תיאור המערכת</Label>
+            <Textarea
+              id="systemDescription"
+              value={formData.systemDescription}
+              onChange={(e) => setFormData({ ...formData, systemDescription: e.target.value })}
+              rows={3}
+              dir="rtl"
+            />
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                אנשי קשר
+                <Button type="button" variant="outline" size="sm" onClick={addContact}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  הוסף איש קשר
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {contacts.map((contact, index) => (
+                <div key={index} className="border rounded-lg p-4 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">איש קשר {index + 1}</h4>
+                    {contacts.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeContact(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>שם פרטי</Label>
+                      <Input
+                        value={contact.firstName}
+                        onChange={(e) => updateContact(index, "firstName", e.target.value)}
+                        dir="rtl"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>שם משפחה</Label>
+                      <Input
+                        value={contact.lastName}
+                        onChange={(e) => updateContact(index, "lastName", e.target.value)}
+                        dir="rtl"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>כתובת מייל</Label>
+                      <Input
+                        type="email"
+                        value={contact.email}
+                        onChange={(e) => updateContact(index, "email", e.target.value)}
+                        dir="rtl"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>מספר טלפון</Label>
+                      <Input
+                        value={contact.phone}
+                        onChange={(e) => updateContact(index, "phone", e.target.value)}
+                        dir="rtl"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>תפקיד</Label>
+                      <Input
+                        value={contact.role}
+                        onChange={(e) => updateContact(index, "role", e.target.value)}
+                        dir="rtl"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <div className="space-y-2">
+            <Label htmlFor="comments">הערות (יישמרו ב-Audit Log)</Label>
+            <Textarea
+              id="comments"
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              rows={3}
+              dir="rtl"
+              placeholder="הוסף הערות קריטיות או תיעוד למצב הנוכחי של הסקר..."
+            />
+          </div>
+
+          <div className="flex justify-start gap-2">
             <Button type="submit" disabled={loading}>
               {loading ? "שומר..." : "שמור שינויים"}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              ביטול
             </Button>
           </div>
         </form>
