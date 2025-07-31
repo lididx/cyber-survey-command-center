@@ -147,7 +147,7 @@ const Statistics = () => {
   }, [profile]);
 
   // Get unique clients for filter
-  const uniqueClients = [...new Set(surveys.map(s => s.clients?.name).filter(Boolean))];
+  const uniqueClients = [...new Set(surveys.map(s => s.clients?.name).filter(name => name && name.trim() !== ''))];
 
   // Filter surveys based on current filters
   const filteredSurveys = surveys.filter(survey => {
