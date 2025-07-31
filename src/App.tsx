@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Archive from "./pages/Archive";
 import Statistics from "./pages/Statistics";
 import Management from "./pages/Management";
+import CVE from "./pages/CVE";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,11 @@ const App = () => (
             <Route path="/management" element={
               <ProtectedRoute requiredRole="admin">
                 <Management />
+              </ProtectedRoute>
+            } />
+            <Route path="/cve" element={
+              <ProtectedRoute>
+                <CVE />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
