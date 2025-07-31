@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Archive from "./pages/Archive";
+import Statistics from "./pages/Statistics";
 import Management from "./pages/Management";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +31,11 @@ const App = () => (
             <Route path="/archive" element={
               <ProtectedRoute>
                 <Archive />
+              </ProtectedRoute>
+            } />
+            <Route path="/statistics" element={
+              <ProtectedRoute>
+                <Statistics />
               </ProtectedRoute>
             } />
             <Route path="/management" element={

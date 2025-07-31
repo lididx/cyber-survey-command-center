@@ -65,13 +65,21 @@ const Archive = () => {
   const fetchArchivedSurveys = async () => {
     try {
       setLoading(true);
+      console.log("Starting to fetch archived surveys...");
+      
+      // Simplified query to avoid complex joins that might fail
       let query = supabase
         .from("surveys")
         .select(`
-          *,
-          clients (name, logo_url),
-          contacts (*),
-          profiles (first_name, last_name)
+          id,
+          system_name,
+          system_description,
+          survey_date,
+          received_date,
+          status,
+          client_id,
+          user_id,
+          created_at
         `)
         .eq("is_archived", true);
 
@@ -80,11 +88,69 @@ const Archive = () => {
         query = query.eq("user_id", user?.id);
       }
 
-      const { data, error } = await query.order("created_at", { ascending: false });
+      const { data: surveysData, error } = await query.order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setSurveys((data as any) || []);
+      if (error) {
+        console.error("Error fetching surveys:", error);
+        throw error;
+      }
+
+      console.log("Surveys fetched:", surveysData?.length);
+
+      if (!surveysData || surveysData.length === 0) {
+        setSurveys([]);
+        return;
+      }
+
+      // Fetch clients separately
+      const clientIds = [...new Set(surveysData.map(s => s.client_id))];
+      const { data: clientsData, error: clientsError } = await supabase
+        .from("clients")
+        .select("id, name, logo_url")
+        .in("id", clientIds);
+
+      if (clientsError) {
+        console.error("Error fetching clients:", clientsError);
+      }
+
+      // Fetch contacts separately
+      const surveyIds = surveysData.map(s => s.id);
+      const { data: contactsData, error: contactsError } = await supabase
+        .from("contacts")
+        .select("*")
+        .in("survey_id", surveyIds);
+
+      if (contactsError) {
+        console.error("Error fetching contacts:", contactsError);
+      }
+
+      // Fetch profiles for admin/manager view
+      let profilesData = null;
+      if (profile && ['admin', 'manager'].includes(profile.role)) {
+        const userIds = [...new Set(surveysData.map(s => s.user_id))];
+        const { data: profiles, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, first_name, last_name")
+          .in("id", userIds);
+
+        if (profilesError) {
+          console.error("Error fetching profiles:", profilesError);
+        } else {
+          profilesData = profiles;
+        }
+      }
+
+      // Combine data
+      const enrichedSurveys = surveysData.map(survey => ({
+        ...survey,
+        clients: clientsData?.find(c => c.id === survey.client_id) || { name: "לקוח לא ידוע", logo_url: null },
+        contacts: contactsData?.filter(c => c.survey_id === survey.id) || [],
+        profiles: profilesData?.find(p => p.id === survey.user_id) || null
+      }));
+
+      setSurveys(enrichedSurveys);
     } catch (error: any) {
+      console.error("Archive fetch error:", error);
       toast({
         title: "שגיאה",
         description: "לא ניתן לטעון את הסקרים הארכיוניים",
