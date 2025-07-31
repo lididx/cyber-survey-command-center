@@ -237,6 +237,8 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
 
       // הוספת הערות ל-audit log אם קיימות
       if (comments.trim()) {
+        console.log("EditSurveyDialog - Adding comments to audit log:", comments.trim());
+        
         const { error: auditError } = await supabase
           .from("audit_logs")
           .insert({
@@ -247,7 +249,14 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
             new_values: { comments: comments.trim() }
           });
 
-        if (auditError) throw auditError;
+        if (auditError) {
+          console.error("EditSurveyDialog - Audit log error:", auditError);
+          throw auditError;
+        } else {
+          console.log("EditSurveyDialog - Comments added to audit log successfully");
+        }
+      } else {
+        console.log("EditSurveyDialog - No comments to add to audit log");
       }
 
       toast({
