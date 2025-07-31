@@ -204,28 +204,10 @@ const Dashboard = () => {
       return;
     }
     try {
-      // First verify the survey exists and is not archived
-      const { data: surveyCheck } = await supabase
-        .from("surveys")
-        .select("id, is_archived")
-        .eq("id", surveyId)
-        .eq("is_archived", false)
-        .single();
-
-      if (!surveyCheck) {
-        toast({
-          title: "שגיאה",
-          description: "הסקר לא נמצא או שכבר נמחק",
-          variant: "destructive",
-        });
-        return;
-      }
-
       const { error } = await supabase
         .from("surveys")
         .delete()
-        .eq("id", surveyId)
-        .eq("is_archived", false); // Double check to prevent multiple deletions
+        .eq("id", surveyId);
 
       if (error) throw error;
       
