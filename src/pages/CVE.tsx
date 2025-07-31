@@ -5,10 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, ExternalLink } from "lucide-react";
+import { Plus, Search, ExternalLink, FolderPlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import AddCVESystemDialog from "@/components/AddCVESystemDialog";
+import AddCVECategoryDialog from "@/components/AddCVECategoryDialog";
+import { useAuth } from "@/hooks/useAuth";
 
 interface CVECategory {
   id: string;
@@ -29,9 +31,11 @@ const CVE = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [addCategoryDialogOpen, setAddCategoryDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { profile } = useAuth();
 
-  const { data: categories, isLoading: categoriesLoading } = useQuery({
+  const { data: categories, isLoading: categoriesLoading, refetch: refetchCategories } = useQuery({
     queryKey: ["cve-categories"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -75,6 +79,14 @@ const CVE = () => {
     });
   };
 
+  const handleAddCategorySuccess = () => {
+    refetchCategories();
+    toast({
+      title: "הצלחה",
+      description: "הקטגוריה נוספה בהצלחה למאגר ה-CVE",
+    });
+  };
+
   if (categoriesLoading || systemsLoading) {
     return (
       <Layout>
@@ -95,15 +107,23 @@ const CVE = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="container mx-auto p-6 space-y-6" dir="rtl">
         {/* Header */}
         <div className="flex flex-col space-y-4">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-foreground">מאגר CVE</h1>
-            <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              הוספת מערכת חדשה
-            </Button>
+            <div className="flex gap-2">
+              {profile?.role === "admin" && (
+                <Button onClick={() => setAddCategoryDialogOpen(true)} variant="outline" className="gap-2">
+                  <FolderPlus className="h-4 w-4" />
+                  הוספת קטגוריה
+                </Button>
+              )}
+              <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                הוספת מערכת חדשה
+              </Button>
+            </div>
           </div>
           
           {/* Search Bar */}
@@ -114,6 +134,7 @@ const CVE = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pr-10"
+              dir="rtl"
             />
           </div>
 
@@ -215,6 +236,12 @@ const CVE = () => {
         onOpenChange={setAddDialogOpen}
         categories={categories || []}
         onSuccess={handleAddSuccess}
+      />
+
+      <AddCVECategoryDialog
+        open={addCategoryDialogOpen}
+        onOpenChange={setAddCategoryDialogOpen}
+        onSuccess={handleAddCategorySuccess}
       />
     </Layout>
   );

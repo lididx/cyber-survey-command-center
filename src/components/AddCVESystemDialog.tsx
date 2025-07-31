@@ -115,7 +115,7 @@ const AddCVESystemDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" dir="rtl">
         <DialogHeader>
           <DialogTitle>הוספת מערכת CVE חדשה</DialogTitle>
         </DialogHeader>
@@ -145,6 +145,7 @@ const AddCVESystemDialog = ({
               onChange={(e) => setSystemName(e.target.value)}
               placeholder="לדוגמא: Apache HTTP Server"
               required
+              dir="rtl"
             />
           </div>
 
@@ -157,6 +158,7 @@ const AddCVESystemDialog = ({
               onChange={(e) => setSystemUrl(e.target.value)}
               placeholder="https://www.cvedetails.com/..."
               required
+              dir="ltr"
             />
           </div>
 
