@@ -64,8 +64,8 @@ const Statistics = () => {
   const [filters, setFilters] = useState({
     dateFrom: null as Date | null,
     dateTo: null as Date | null,
-    client: "",
-    status: "",
+    client: "all",
+    status: "all",
     searchTerm: ""
   });
 
@@ -154,10 +154,10 @@ const Statistics = () => {
     if (filters.searchTerm && !survey.system_name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
       return false;
     }
-    if (filters.client && survey.clients?.name !== filters.client) {
+    if (filters.client !== "all" && survey.clients?.name !== filters.client) {
       return false;
     }
-    if (filters.status && survey.status !== filters.status) {
+    if (filters.status !== "all" && survey.status !== filters.status) {
       return false;
     }
     if (filters.dateFrom && new Date(survey.created_at) < filters.dateFrom) {

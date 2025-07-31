@@ -33,8 +33,8 @@ const StatisticsFilters = ({ filters, setFilters, uniqueClients, statusLabels }:
     setFilters({
       dateFrom: null,
       dateTo: null,
-      client: "",
-      status: "",
+      client: "all",
+      status: "all",
       searchTerm: ""
     });
   };
@@ -129,7 +129,7 @@ const StatisticsFilters = ({ filters, setFilters, uniqueClients, statusLabels }:
                 <SelectValue placeholder="בחר לקוח" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">כל הלקוחות</SelectItem>
+                <SelectItem value="all">כל הלקוחות</SelectItem>
                 {uniqueClients.map(client => (
                   <SelectItem key={client} value={client}>{client}</SelectItem>
                 ))}
@@ -145,7 +145,7 @@ const StatisticsFilters = ({ filters, setFilters, uniqueClients, statusLabels }:
                 <SelectValue placeholder="בחר סטטוס" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">כל הסטטוסים</SelectItem>
+                <SelectItem value="all">כל הסטטוסים</SelectItem>
                 {Object.entries(statusLabels).map(([key, label]) => (
                   <SelectItem key={key} value={key}>{label}</SelectItem>
                 ))}
