@@ -291,9 +291,10 @@ const Dashboard = () => {
                 {expandedClients.has(clientName) && (
                     <CardContent className="space-y-4">
                     {/* כותרות טבלה */}
-                    <div className={`grid grid-cols-1 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-6' : 'md:grid-cols-5'}`}>
+                    <div className={`grid grid-cols-1 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6'}`}>
                       <div className="text-center">שם המערכת</div>
                       <div className="text-center">סטטוס</div>
+                      <div className="text-center">תאריך הקפצת מייל אחרון</div>
                       <div className="text-center">אנשי קשר</div>
                       <div className="text-center">תאריך ביצוע הסקר</div>
                       {profile && ['admin', 'manager'].includes(profile.role) && (
@@ -307,18 +308,7 @@ const Dashboard = () => {
                       const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
                       return (
                         <div key={survey.id} className="border rounded-lg p-4 my-2">
-                          {/* רק עבור סקרים בסטטוס שאלות השלמה - הוספת כותרת עמודה דינמית */}
-                          {survey.status === 'completion_questions_with_admin' && (
-                            <div className="mb-2 text-center text-sm font-semibold text-muted-foreground">
-                              תאריך הקפצת מייל אחרון
-                            </div>
-                          )}
-                          
-                          <div className={`grid grid-cols-1 gap-4 items-center min-h-[60px] ${
-                            survey.status === 'completion_questions_with_admin' 
-                              ? (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6')
-                              : (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-6' : 'md:grid-cols-5')
-                          }`}>
+                          <div className={`grid grid-cols-1 gap-4 items-center min-h-[60px] ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6'}`}>
                             {/* שם המערכת */}
                             <div className="font-medium text-center">{survey.system_name}</div>
                             
@@ -347,26 +337,30 @@ const Dashboard = () => {
                               </Select>
                             </div>
                             
-                            {/* עמודת הקפצת מייל - רק עבור סטטוס שאלות השלמה */}
-                            {survey.status === 'completion_questions_with_admin' && (
-                              <div className="text-sm text-center space-y-1">
-                                <div>
-                                  {survey.last_email_bounce_date 
-                                    ? new Date(survey.last_email_bounce_date).toLocaleDateString("he-IL")
-                                    : "לא בוצעה הקפצה"
-                                  }
+                            {/* תאריך הקפצת מייל אחרון */}
+                            <div className="text-sm text-center">
+                              {survey.status === 'completion_questions_with_admin' ? (
+                                <div className="space-y-1">
+                                  <div>
+                                    {survey.last_email_bounce_date 
+                                      ? new Date(survey.last_email_bounce_date).toLocaleDateString("he-IL")
+                                      : "לא בוצעה הקפצה"
+                                    }
+                                  </div>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => updateEmailBounceDate(survey.id)}
+                                    title="עדכן להיום"
+                                    className="text-xs px-2 py-1"
+                                  >
+                                    עדכן
+                                  </Button>
                                 </div>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={() => updateEmailBounceDate(survey.id)}
-                                  title="עדכן להיום"
-                                  className="text-xs px-2 py-1"
-                                >
-                                  עדכן
-                                </Button>
-                              </div>
-                            )}
+                              ) : (
+                                <div className="text-muted-foreground">-</div>
+                              )}
+                            </div>
                             
                             {/* אנשי קשר */}
                             <div className="text-sm text-center space-y-2">
