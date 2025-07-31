@@ -121,19 +121,24 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
 
   useEffect(() => {
     console.log("EditSurveyDialog useEffect - survey:", survey);
+    console.log("EditSurveyDialog useEffect - current formData:", formData);
     
     if (survey) {
       console.log("EditSurveyDialog - Loading survey data:", survey);
       
-      setFormData({
+      const newFormData = {
         systemName: survey.system_name,
         systemDescription: survey.system_description || "",
-        surveyDate: survey.survey_date,
+        surveyDate: survey.survey_date || "",
         receivedDate: survey.received_date || "",
         lastEmailBounceDate: survey.last_email_bounce_date || "",
         status: survey.status as any,
         clientId: survey.client_id
-      });
+      };
+      
+      console.log("EditSurveyDialog - Setting form data to:", newFormData);
+      
+      setFormData(newFormData);
       
       // Convert existing contacts to the new format
       const existingContacts = survey.contacts?.map(contact => ({
