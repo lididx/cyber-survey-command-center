@@ -141,12 +141,24 @@ const Dashboard = () => {
   const updateEmailBounceDate = async (surveyId: string) => {
     try {
       const today = new Date().toISOString().split('T')[0];
+      const currentSurvey = surveys.find(s => s.id === surveyId);
+      const oldValue = currentSurvey?.last_email_bounce_date || null;
+      
       const { error } = await supabase
         .from("surveys")
         .update({ last_email_bounce_date: today })
         .eq("id", surveyId);
       
       if (error) throw error;
+      
+      // Add to history
+      await supabase.from("survey_history").insert({
+        survey_id: surveyId,
+        user_id: user?.id,
+        field_name: "last_email_bounce_date",
+        old_value: oldValue || "null",
+        new_value: today
+      });
       
       setSurveys(prev => prev.map(survey => 
         survey.id === surveyId 
@@ -289,26 +301,45 @@ const Dashboard = () => {
                 </CardHeader>
                 
                 {expandedClients.has(clientName) && (
-                    <CardContent className="space-y-4">
-                    {/* כותרות טבלה */}
-                    <div className={`grid grid-cols-1 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6'}`}>
-                      <div className="text-center">שם המערכת</div>
-                      <div className="text-center">סטטוס</div>
-                      <div className="text-center">תאריך הקפצת מייל אחרון</div>
-                      <div className="text-center">אנשי קשר</div>
-                      <div className="text-center">תאריך ביצוע הסקר</div>
-                      {profile && ['admin', 'manager'].includes(profile.role) && (
-                        <div className="text-center">אחראי על הסקר</div>
-                      )}
-                      <div className="text-center">פעולות</div>
-                    </div>
+                <CardContent className="space-y-4">
+                    {/* בדיקה אם יש סקרים עם סטטוס שאלות השלמה */}
+                    {(() => {
+                      const hasCompletionQuestions = clientSurveys.some(survey => survey.status === 'completion_questions_with_admin');
+                      const gridCols = hasCompletionQuestions 
+                        ? (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6')
+                        : (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-6' : 'md:grid-cols-5');
+                      
+                      return (
+                        <>
+                          {/* כותרות טבלה */}
+                          <div className={`grid grid-cols-1 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm ${gridCols}`}>
+                            <div className="text-center">שם המערכת</div>
+                            <div className="text-center">סטטוס</div>
+                            {hasCompletionQuestions && (
+                              <div className="text-center">תאריך הקפצת מייל אחרון</div>
+                            )}
+                            <div className="text-center">אנשי קשר</div>
+                            <div className="text-center">תאריך ביצוע הסקר</div>
+                            {profile && ['admin', 'manager'].includes(profile.role) && (
+                              <div className="text-center">אחראי על הסקר</div>
+                            )}
+                            <div className="text-center">פעולות</div>
+                          </div>
+                        </>
+                      );
+                    })()}
                     
                     {clientSurveys.map(survey => {
                       const primaryContact = survey.contacts[0];
                       const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
+                      const hasCompletionQuestions = clientSurveys.some(s => s.status === 'completion_questions_with_admin');
+                      const gridCols = hasCompletionQuestions 
+                        ? (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6')
+                        : (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-6' : 'md:grid-cols-5');
+                      
                       return (
                         <div key={survey.id} className="border rounded-lg p-4 my-2">
-                          <div className={`grid grid-cols-1 gap-4 items-center min-h-[60px] ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6'}`}>
+                          <div className={`grid grid-cols-1 gap-4 items-center min-h-[60px] ${gridCols}`}>
                             {/* שם המערכת */}
                             <div className="font-medium text-center">{survey.system_name}</div>
                             
@@ -337,30 +368,32 @@ const Dashboard = () => {
                               </Select>
                             </div>
                             
-                            {/* תאריך הקפצת מייל אחרון */}
-                            <div className="text-sm text-center">
-                              {survey.status === 'completion_questions_with_admin' ? (
-                                <div className="space-y-1">
-                                  <div>
-                                    {survey.last_email_bounce_date 
-                                      ? new Date(survey.last_email_bounce_date).toLocaleDateString("he-IL")
-                                      : "לא בוצעה הקפצה"
-                                    }
+                            {/* תאריך הקפצת מייל אחרון - רק אם יש סקרים עם סטטוס שאלות השלמה */}
+                            {hasCompletionQuestions && (
+                              <div className="text-sm text-center">
+                                {survey.status === 'completion_questions_with_admin' ? (
+                                  <div className="space-y-1">
+                                    <div>
+                                      {survey.last_email_bounce_date 
+                                        ? new Date(survey.last_email_bounce_date).toLocaleDateString("he-IL")
+                                        : "לא בוצעה הקפצה"
+                                      }
+                                    </div>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      onClick={() => updateEmailBounceDate(survey.id)}
+                                      title="עדכן להיום"
+                                      className="text-xs px-2 py-1"
+                                    >
+                                      עדכן
+                                    </Button>
                                   </div>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    onClick={() => updateEmailBounceDate(survey.id)}
-                                    title="עדכן להיום"
-                                    className="text-xs px-2 py-1"
-                                  >
-                                    עדכן
-                                  </Button>
-                                </div>
-                              ) : (
-                                <div className="text-muted-foreground">-</div>
-                              )}
-                            </div>
+                                ) : (
+                                  <div className="text-muted-foreground">-</div>
+                                )}
+                              </div>
+                            )}
                             
                             {/* אנשי קשר */}
                             <div className="text-sm text-center space-y-2">

@@ -87,13 +87,29 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
         .select("id, name")
         .order("name");
       
-      if (data) setClients(data);
+      if (data) {
+        setClients(data);
+        
+        // If survey data exists, update form data after clients are loaded
+        if (survey) {
+          setFormData({
+            system_name: survey.system_name,
+            system_description: survey.system_description || "",
+            survey_date: survey.survey_date,
+            received_date: survey.received_date || "",
+            last_email_bounce_date: survey.last_email_bounce_date || "",
+            status: survey.status,
+            client_id: survey.client_id
+          });
+          setContacts(survey.contacts || []);
+        }
+      }
     };
 
     if (open) {
       fetchClients();
     }
-  }, [open]);
+  }, [open, survey]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
