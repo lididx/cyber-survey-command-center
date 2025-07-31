@@ -204,16 +204,40 @@ const Dashboard = () => {
       return;
     }
     try {
-      const {
-        error
-      } = await supabase.from("surveys").delete().eq("id", surveyId);
+      // First verify the survey exists and is not archived
+      const { data: surveyCheck } = await supabase
+        .from("surveys")
+        .select("id, is_archived")
+        .eq("id", surveyId)
+        .eq("is_archived", false)
+        .single();
+
+      if (!surveyCheck) {
+        toast({
+          title: "שגיאה",
+          description: "הסקר לא נמצא או שכבר נמחק",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from("surveys")
+        .delete()
+        .eq("id", surveyId)
+        .eq("is_archived", false); // Double check to prevent multiple deletions
+
       if (error) throw error;
+      
+      // Remove from local state only after successful database deletion
       setSurveys(prev => prev.filter(survey => survey.id !== surveyId));
+      
       toast({
         title: "הסקר נמחק",
         description: "הסקר נמחק בהצלחה מהמערכת"
       });
     } catch (error: any) {
+      console.error("Delete error:", error);
       toast({
         title: "שגיאה",
         description: "לא ניתן למחוק את הסקר",
@@ -225,6 +249,27 @@ const Dashboard = () => {
     if (profile) {
       fetchSurveys();
     }
+  }, [profile]);
+
+  // Refetch surveys when component mounts or becomes visible
+  useEffect(() => {
+    const handleFocus = () => {
+      if (profile) {
+        fetchSurveys();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && profile) {
+        fetchSurveys();
+      }
+    });
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
   }, [profile]);
   const groupedSurveys = surveys.reduce((acc, survey) => {
     const clientName = survey.clients.name;

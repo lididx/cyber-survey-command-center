@@ -163,13 +163,32 @@ const Archive = () => {
 
   const restoreSurvey = async (surveyId: string) => {
     try {
+      // First verify the survey exists and is archived
+      const { data: surveyCheck } = await supabase
+        .from("surveys")
+        .select("id, is_archived")
+        .eq("id", surveyId)
+        .eq("is_archived", true)
+        .single();
+
+      if (!surveyCheck) {
+        toast({
+          title: "שגיאה",
+          description: "הסקר לא נמצא או שכבר שוחזר",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from("surveys")
         .update({ is_archived: false })
-        .eq("id", surveyId);
+        .eq("id", surveyId)
+        .eq("is_archived", true); // Double check to prevent multiple updates
 
       if (error) throw error;
 
+      // Remove from local state only after successful database update
       setSurveys(prev => prev.filter(survey => survey.id !== surveyId));
 
       toast({
@@ -177,6 +196,7 @@ const Archive = () => {
         description: "הסקר הוחזר לדף הבית",
       });
     } catch (error: any) {
+      console.error("Restore error:", error);
       toast({
         title: "שגיאה",
         description: "לא ניתן לשחזר את הסקר",
