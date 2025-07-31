@@ -156,6 +156,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_archived: boolean | null
+          last_email_bounce_date: string | null
           received_date: string | null
           status: Database["public"]["Enums"]["survey_status"]
           survey_date: string | null
@@ -169,6 +170,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_archived?: boolean | null
+          last_email_bounce_date?: string | null
           received_date?: string | null
           status?: Database["public"]["Enums"]["survey_status"]
           survey_date?: string | null
@@ -182,6 +184,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_archived?: boolean | null
+          last_email_bounce_date?: string | null
           received_date?: string | null
           status?: Database["public"]["Enums"]["survey_status"]
           survey_date?: string | null

@@ -18,6 +18,7 @@ interface Survey {
   system_description: string;
   survey_date: string;
   received_date: string;
+  last_email_bounce_date: string | null;
   status: string;
   client_id: string;
   user_id: string;
@@ -132,6 +133,35 @@ const Dashboard = () => {
       toast({
         title: "שגיאה",
         description: "לא ניתן לעדכן את הסטטוס",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const updateEmailBounceDate = async (surveyId: string) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { error } = await supabase
+        .from("surveys")
+        .update({ last_email_bounce_date: today })
+        .eq("id", surveyId);
+      
+      if (error) throw error;
+      
+      setSurveys(prev => prev.map(survey => 
+        survey.id === surveyId 
+          ? { ...survey, last_email_bounce_date: today }
+          : survey
+      ));
+      
+      toast({
+        title: "תאריך הקפצה עודכן",
+        description: "תאריך הקפצת המייל האחרון עודכן להיום"
+      });
+    } catch (error: any) {
+      toast({
+        title: "שגיאה", 
+        description: "לא ניתן לעדכן תאריך הקפצה",
         variant: "destructive"
       });
     }
@@ -261,10 +291,9 @@ const Dashboard = () => {
                 {expandedClients.has(clientName) && (
                     <CardContent className="space-y-4">
                     {/* כותרות טבלה */}
-                    <div className={`grid grid-cols-1 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6'}`}>
+                    <div className={`grid grid-cols-1 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-6' : 'md:grid-cols-5'}`}>
                       <div className="text-center">שם המערכת</div>
                       <div className="text-center">סטטוס</div>
-                      <div className="text-center">תאריך קבלת הסקר</div>
                       <div className="text-center">אנשי קשר</div>
                       <div className="text-center">תאריך ביצוע הסקר</div>
                       {profile && ['admin', 'manager'].includes(profile.role) && (
@@ -278,10 +307,22 @@ const Dashboard = () => {
                       const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
                       return (
                         <div key={survey.id} className="border rounded-lg p-4 my-2">
-                          <div className={`grid grid-cols-1 gap-4 items-center min-h-[60px] ${profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6'}`}>
-                            {/* שם המערכת בלבד */}
+                          {/* רק עבור סקרים בסטטוס שאלות השלמה - הוספת כותרת עמודה דינמית */}
+                          {survey.status === 'completion_questions_with_admin' && (
+                            <div className="mb-2 text-center text-sm font-semibold text-muted-foreground">
+                              תאריך הקפצת מייל אחרון
+                            </div>
+                          )}
+                          
+                          <div className={`grid grid-cols-1 gap-4 items-center min-h-[60px] ${
+                            survey.status === 'completion_questions_with_admin' 
+                              ? (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6')
+                              : (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-6' : 'md:grid-cols-5')
+                          }`}>
+                            {/* שם המערכת */}
                             <div className="font-medium text-center">{survey.system_name}</div>
                             
+                            {/* סטטוס */}
                             <div>
                               <Select value={survey.status} onValueChange={value => updateSurveyStatus(survey.id, value)}>
                                 <SelectTrigger 
@@ -306,10 +347,28 @@ const Dashboard = () => {
                               </Select>
                             </div>
                             
-                            <div className="text-sm text-center">
-                              {survey.received_date ? new Date(survey.received_date).toLocaleDateString("he-IL") : "לא צוין"}
-                            </div>
+                            {/* עמודת הקפצת מייל - רק עבור סטטוס שאלות השלמה */}
+                            {survey.status === 'completion_questions_with_admin' && (
+                              <div className="text-sm text-center space-y-1">
+                                <div>
+                                  {survey.last_email_bounce_date 
+                                    ? new Date(survey.last_email_bounce_date).toLocaleDateString("he-IL")
+                                    : "לא בוצעה הקפצה"
+                                  }
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => updateEmailBounceDate(survey.id)}
+                                  title="עדכן להיום"
+                                  className="text-xs px-2 py-1"
+                                >
+                                  עדכן
+                                </Button>
+                              </div>
+                            )}
                             
+                            {/* אנשי קשר */}
                             <div className="text-sm text-center space-y-2">
                               <div>
                                 {primaryContact ? `${primaryContact.first_name} ${primaryContact.last_name}` : "אין איש קשר"}
@@ -329,16 +388,19 @@ const Dashboard = () => {
                               </div>
                             </div>
                             
+                            {/* תאריך ביצוע הסקר */}
                             <div className="text-sm text-center">
                               {new Date(survey.survey_date).toLocaleDateString("he-IL")}
                             </div>
                             
+                            {/* אחראי על הסקר - רק למנהלים ומנהלות */}
                             {profile && ['admin', 'manager'].includes(profile.role) && (
                               <div className="text-sm text-center">
                                 לא זמין
                               </div>
                             )}
                             
+                            {/* פעולות */}
                             <div className="flex gap-1 flex-wrap justify-center">
                               <Button variant="outline" size="sm" title="עריכה" onClick={() => {
                                 setSelectedSurvey(survey);

@@ -15,6 +15,7 @@ interface Survey {
   system_description: string;
   survey_date: string;
   received_date: string;
+  last_email_bounce_date: string | null;
   status: string;
   client_id: string;
   contacts?: Array<{
@@ -55,6 +56,7 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
     system_description: "",
     survey_date: "",
     received_date: "",
+    last_email_bounce_date: "",
     status: "received",
     client_id: ""
   });
@@ -70,6 +72,7 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
         system_description: survey.system_description || "",
         survey_date: survey.survey_date,
         received_date: survey.received_date || "",
+        last_email_bounce_date: survey.last_email_bounce_date || "",
         status: survey.status,
         client_id: survey.client_id
       });
@@ -105,6 +108,7 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
           system_description: formData.system_description,
           survey_date: formData.survey_date,
           received_date: formData.received_date || null,
+          last_email_bounce_date: formData.last_email_bounce_date || null,
           status: formData.status as any,
           client_id: formData.client_id
         })
@@ -212,6 +216,19 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
               </SelectContent>
             </Select>
           </div>
+
+          {/* שדה תאריך הקפצת מייל - רק עבור סטטוס שאלות השלמה */}
+          {formData.status === 'completion_questions_with_admin' && (
+            <div className="space-y-2">
+              <Label htmlFor="last_email_bounce_date">תאריך הקפצת מייל אחרון</Label>
+              <Input
+                id="last_email_bounce_date"
+                type="date"
+                value={formData.last_email_bounce_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, last_email_bounce_date: e.target.value }))}
+              />
+            </div>
+          )}
 
           {/* Contact Display Section */}
           {contacts.length > 0 && (
