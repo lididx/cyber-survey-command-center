@@ -12,6 +12,8 @@ interface HistoryEntry {
   new_value: string;
   created_at: string;
   user_id: string;
+  source: 'survey_history' | 'audit_logs';
+  action?: string;
 }
 
 interface SurveyHistoryDialogProps {
@@ -23,11 +25,12 @@ interface SurveyHistoryDialogProps {
 
 const fieldNameLabels: Record<string, string> = {
   status: "סטטוס",
-  is_archived: "ארכיון",
+  is_archived: "ארכיון", 
   survey_date: "תאריך סקר",
   received_date: "תאריך קבלה",
   system_name: "שם מערכת",
-  system_description: "תיאור מערכת"
+  system_description: "תיאור מערכת",
+  comments: "הערות"
 };
 
 const statusLabels: Record<string, string> = {
@@ -50,7 +53,9 @@ const SurveyHistoryDialog = ({ open, onOpenChange, surveyId, surveyName }: Surve
     
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // טעינת נתונים מטבלת survey_history
+      const { data: surveyHistoryData, error: surveyHistoryError } = await supabase
         .from("survey_history")
         .select(`
           id,
@@ -63,8 +68,56 @@ const SurveyHistoryDialog = ({ open, onOpenChange, surveyId, surveyName }: Surve
         .eq("survey_id", surveyId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setHistory(data || []);
+      if (surveyHistoryError) throw surveyHistoryError;
+
+      // טעינת הערות מטבלת audit_logs
+      const { data: auditLogsData, error: auditLogsError } = await supabase
+        .from("audit_logs")
+        .select(`
+          id,
+          action,
+          new_values,
+          created_at,
+          user_id
+        `)
+        .eq("record_id", surveyId)
+        .eq("table_name", "surveys")
+        .eq("action", "comment")
+        .order("created_at", { ascending: false });
+
+      if (auditLogsError) throw auditLogsError;
+
+      // המרת נתוני survey_history לפורמט אחיד
+      const surveyHistoryEntries: HistoryEntry[] = (surveyHistoryData || []).map(entry => ({
+        id: entry.id,
+        field_name: entry.field_name,
+        old_value: entry.old_value || "",
+        new_value: entry.new_value || "",
+        created_at: entry.created_at,
+        user_id: entry.user_id,
+        source: 'survey_history' as const
+      }));
+
+      // המרת נתוני audit_logs לפורמט אחיד
+      const auditLogEntries: HistoryEntry[] = (auditLogsData || []).map(entry => {
+        const newValues = entry.new_values as any;
+        return {
+          id: entry.id,
+          field_name: "comments",
+          old_value: "",
+          new_value: newValues?.comments || "",
+          created_at: entry.created_at,
+          user_id: entry.user_id,
+          source: 'audit_logs' as const,
+          action: entry.action
+        };
+      });
+
+      // שילוב הנתונים ומיון לפי תאריך
+      const allEntries = [...surveyHistoryEntries, ...auditLogEntries];
+      allEntries.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      setHistory(allEntries);
     } catch (error: any) {
       toast({
         title: "שגיאה",
@@ -88,6 +141,9 @@ const SurveyHistoryDialog = ({ open, onOpenChange, surveyId, surveyName }: Surve
     }
     if (fieldName === "is_archived") {
       return value === "true" ? "כן" : "לא";
+    }
+    if (fieldName === "comments") {
+      return value; // הערות מוצגות כמו שהן
     }
     return value;
   };
@@ -132,7 +188,7 @@ const SurveyHistoryDialog = ({ open, onOpenChange, surveyId, surveyName }: Surve
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    {formatValue(entry.field_name, entry.old_value)}
+                    {entry.field_name === "comments" ? "-" : formatValue(entry.field_name, entry.old_value)}
                   </TableCell>
                   <TableCell className="text-right">
                     {formatValue(entry.field_name, entry.new_value)}
