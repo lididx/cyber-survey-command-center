@@ -112,7 +112,8 @@ const Statistics = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name")
+        .select("id, first_name, last_name, role")
+        .eq("role", "surveyor")
         .order("first_name");
 
       if (error) throw error;
