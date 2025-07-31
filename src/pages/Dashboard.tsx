@@ -211,8 +211,8 @@ const Dashboard = () => {
 
       if (error) throw error;
       
-      // Remove from local state only after successful database deletion
-      setSurveys(prev => prev.filter(survey => survey.id !== surveyId));
+      // Force refresh from database after successful deletion
+      await fetchSurveys();
       
       toast({
         title: "הסקר נמחק",
