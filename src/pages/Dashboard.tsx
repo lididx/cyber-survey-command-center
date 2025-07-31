@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import AddSurveyDialog from "@/components/AddSurveyDialog";
 import SurveyHistoryDialog from "@/components/SurveyHistoryDialog";
 import EmailTemplateDialog from "@/components/EmailTemplateDialog";
+import EditSurveyDialog from "@/components/EditSurveyDialog";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 interface Survey {
@@ -49,7 +50,7 @@ const Dashboard = () => {
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
-  
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
   const statusLabels: Record<string, string> = {
     received: "התקבל",
@@ -457,8 +458,8 @@ const Dashboard = () => {
                             {/* פעולות */}
                             <div className="flex gap-1 flex-wrap justify-center">
                               <Button variant="outline" size="sm" title="עריכה" onClick={() => {
-                                // TODO: הוסף פונקציונליות עריכה חדשה
-                                console.log("Edit survey:", survey);
+                                setSelectedSurvey(survey);
+                                setShowEditDialog(true);
                               }}>
                                 <Edit className="h-3 w-3" />
                               </Button>
@@ -511,7 +512,7 @@ const Dashboard = () => {
           userGender={profile?.gender}
         />}
 
-        
+        {showEditDialog && selectedSurvey && <EditSurveyDialog open={showEditDialog} onOpenChange={setShowEditDialog} survey={selectedSurvey} onSuccess={fetchSurveys} />}
       </div>
     </Layout>;
 };
