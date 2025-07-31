@@ -11,9 +11,16 @@ interface Survey {
   created_at: string;
   updated_at: string;
   status: string;
+  user_id: string;
   clients: {
     name: string;
   };
+}
+
+interface UserProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
 }
 
 interface SystemSettings {
@@ -25,9 +32,11 @@ interface SurveyDetailsTableProps {
   surveys: Survey[];
   systemSettings: SystemSettings;
   statusLabels: Record<string, string>;
+  isAdmin?: boolean;
+  userProfiles?: UserProfile[];
 }
 
-const SurveyDetailsTable = ({ surveys, systemSettings, statusLabels }: SurveyDetailsTableProps) => {
+const SurveyDetailsTable = ({ surveys, systemSettings, statusLabels, isAdmin = false, userProfiles = [] }: SurveyDetailsTableProps) => {
   const { toast } = useToast();
 
   const getDaysInStatus = (survey: Survey) => {
@@ -51,6 +60,11 @@ const SurveyDetailsTable = ({ surveys, systemSettings, statusLabels }: SurveyDet
     return systemSettings.status_colors[status] || "#8884d8";
   };
 
+  const getUserName = (userId: string) => {
+    const user = userProfiles.find(profile => profile.id === userId);
+    return user ? `${user.first_name} ${user.last_name}` : "לא ידוע";
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -66,6 +80,7 @@ const SurveyDetailsTable = ({ surveys, systemSettings, statusLabels }: SurveyDet
                 <TableHead className="text-center">תאריך פתיחה</TableHead>
                 <TableHead className="text-center">סטטוס נוכחי</TableHead>
                 <TableHead className="text-center">ימים בסטטוס</TableHead>
+                {isAdmin && <TableHead className="text-center">בעל הסקר</TableHead>}
                 <TableHead className="text-center">פעולות</TableHead>
               </TableRow>
             </TableHeader>
@@ -106,6 +121,11 @@ const SurveyDetailsTable = ({ surveys, systemSettings, statusLabels }: SurveyDet
                         {stuck && <AlertTriangle className="h-4 w-4 text-red-500" />}
                       </div>
                     </TableCell>
+                    {isAdmin && (
+                      <TableCell className="text-center font-medium">
+                        {getUserName(survey.user_id)}
+                      </TableCell>
+                    )}
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-2">
                         <Button

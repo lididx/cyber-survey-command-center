@@ -229,6 +229,8 @@ const Statistics = () => {
           surveys={filteredSurveys}
           systemSettings={systemSettings}
           statusLabels={statusLabels}
+          isAdmin={['admin', 'manager'].includes(profile?.role || '')}
+          userProfiles={userProfiles}
         />
 
         {/* User Summary Section - Only for Admins/Managers */}
