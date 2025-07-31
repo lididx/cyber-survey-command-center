@@ -137,51 +137,6 @@ const ChartsSection = ({ surveys, systemSettings, statusLabels }: ChartsSectionP
           </ResponsiveContainer>
         </CardContent>
       </Card>
-
-      {/* Time in Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle>משך זמן בסטטוסים</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={timeInStatusData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="status" 
-                tick={{ fontSize: 10 }}
-                angle={-45}
-                textAnchor="end"
-                height={100}
-              />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="avgDays" fill="#82ca9d" name="ממוצע ימים" />
-              <Bar dataKey="stuckCount" fill="#ff8042" name="סקרים תקועים" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Monthly Trends */}
-      <Card>
-        <CardHeader>
-          <CardTitle>מגמות חודשיות</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={monthlyTrends}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="created" stroke="#8884d8" name="סקרים חדשים" />
-              <Line type="monotone" dataKey="completed" stroke="#82ca9d" name="סקרים שהושלמו" />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
     </div>
   );
 };

@@ -20,6 +20,7 @@ import ChartsSection from "@/components/ChartsSection";
 import SurveyDetailsTable from "@/components/SurveyDetailsTable";
 import RemindersSection from "@/components/RemindersSection";
 import AdminSettingsDialog from "@/components/AdminSettingsDialog";
+import UserSummarySection from "@/components/UserSummarySection";
 
 interface Survey {
   id: string;
@@ -53,6 +54,7 @@ const Statistics = () => {
   
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userProfiles, setUserProfiles] = useState<any[]>([]);
   const [systemSettings, setSystemSettings] = useState<SystemSettings>({
     stuck_survey_threshold_days: 5,
     status_colors: {},
@@ -106,6 +108,20 @@ const Statistics = () => {
     }
   };
 
+  const fetchUserProfiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .order("first_name");
+
+      if (error) throw error;
+      setUserProfiles(data || []);
+    } catch (error: any) {
+      console.error("Error fetching user profiles:", error);
+    }
+  };
+
   const fetchSurveys = async () => {
     try {
       setLoading(true);
@@ -143,6 +159,9 @@ const Statistics = () => {
     if (profile) {
       fetchSystemSettings();
       fetchSurveys();
+      if (['admin', 'manager'].includes(profile.role)) {
+        fetchUserProfiles();
+      }
     }
   }, [profile]);
 
@@ -205,6 +224,22 @@ const Statistics = () => {
           statusLabels={statusLabels}
         />
 
+        {/* Survey Details Table */}
+        <SurveyDetailsTable 
+          surveys={filteredSurveys}
+          systemSettings={systemSettings}
+          statusLabels={statusLabels}
+        />
+
+        {/* User Summary Section - Only for Admins/Managers */}
+        {isAdmin && userProfiles.length > 0 && (
+          <UserSummarySection
+            surveys={surveys}
+            statusLabels={statusLabels}
+            userProfiles={userProfiles}
+          />
+        )}
+
         {/* Filters */}
         <StatisticsFilters
           filters={filters}
@@ -222,13 +257,6 @@ const Statistics = () => {
 
         {/* Reminders Section */}
         <RemindersSection 
-          surveys={filteredSurveys}
-          systemSettings={systemSettings}
-          statusLabels={statusLabels}
-        />
-
-        {/* Survey Details Table */}
-        <SurveyDetailsTable 
           surveys={filteredSurveys}
           systemSettings={systemSettings}
           statusLabels={statusLabels}
