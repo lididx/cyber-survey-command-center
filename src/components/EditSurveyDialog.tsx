@@ -268,7 +268,7 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form key={survey?.id} onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="systemName">שם המערכת *</Label>
