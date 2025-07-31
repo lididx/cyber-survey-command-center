@@ -243,9 +243,14 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
         console.log("EditSurveyDialog - Adding comments to audit log:", comments.trim());
         console.log("EditSurveyDialog - User ID:", user.id);
         console.log("EditSurveyDialog - Survey ID:", survey.id);
+        console.log("EditSurveyDialog - auth.uid() check...");
+        
+        // קבלת המשתמש הנוכחי מ-Supabase Auth
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        console.log("EditSurveyDialog - Auth user:", authUser);
         
         const auditData = {
-          user_id: user.id,
+          user_id: authUser?.id || user.id, // שימוש ב-auth user ID
           table_name: "surveys",
           record_id: survey.id,
           action: "comment",
