@@ -21,11 +21,11 @@ interface Survey {
   last_email_bounce_date: string | null;
   status: string;
   client_id: string;
-  client?: {
-    id: string;
+  clients: {
     name: string;
+    logo_url: string | null;
   };
-  contacts?: Array<{
+  contacts: Array<{
     id: string;
     first_name: string;
     last_name: string;
