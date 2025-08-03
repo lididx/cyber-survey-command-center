@@ -92,7 +92,7 @@ const Dashboard = () => {
           *,
           clients (name, logo_url),
           contacts (*),
-          profiles!surveys_user_id_fkey (first_name, last_name)
+          profiles (first_name, last_name)
         `).eq("is_archived", false);
 
       // If user is not admin or manager, only show their own surveys

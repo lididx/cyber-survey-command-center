@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import AddCVESystemDialog from "@/components/AddCVESystemDialog";
 import AddCVECategoryDialog from "@/components/AddCVECategoryDialog";
+import EditCVESystemDialog from "@/components/EditCVESystemDialog";
 import { useAuth } from "@/hooks/useAuth";
 
 interface CVECategory {
@@ -33,6 +34,8 @@ const CVE = () => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [addCategoryDialogOpen, setAddCategoryDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingSystem, setEditingSystem] = useState<CVESystem | null>(null);
   const { toast } = useToast();
   const { profile } = useAuth();
 
@@ -114,6 +117,19 @@ const CVE = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleEditSystem = (system: CVESystem) => {
+    setEditingSystem(system);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    refetchSystems();
+    toast({
+      title: "הצלחה",
+      description: "המערכת עודכנה בהצלחה",
+    });
   };
 
   if (categoriesLoading || systemsLoading) {
@@ -251,19 +267,34 @@ const CVE = () => {
                             </a>
                             <div className="flex gap-1">
                               {editMode && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleDeleteSystem(system.id);
-                                  }}
-                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
-                                  title="מחק מערכת"
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleEditSystem(system);
+                                    }}
+                                    className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 h-6 w-6 p-0"
+                                    title="ערוך מערכת"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleDeleteSystem(system.id);
+                                    }}
+                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+                                    title="מחק מערכת"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </>
                               )}
                               <a
                                 href={system.url}
@@ -309,6 +340,14 @@ const CVE = () => {
         open={addCategoryDialogOpen}
         onOpenChange={setAddCategoryDialogOpen}
         onSuccess={handleAddCategorySuccess}
+      />
+
+      <EditCVESystemDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        system={editingSystem}
+        categories={categories || []}
+        onSuccess={handleEditSuccess}
       />
     </Layout>
   );

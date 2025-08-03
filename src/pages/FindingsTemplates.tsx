@@ -366,12 +366,10 @@ export default function FindingsTemplates() {
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-3xl font-bold text-foreground">תבניות ממצאים</h1>
               <div className="flex gap-2">
-                {isAdmin && (
-                  <Button onClick={() => setAddCategoryDialogOpen(true)} variant="outline" className="gap-2">
-                    <FolderPlus className="h-4 w-4" />
-                    הוספת קטגוריה
-                  </Button>
-                )}
+                <Button onClick={() => setAddCategoryDialogOpen(true)} variant="outline" className="gap-2">
+                  <FolderPlus className="h-4 w-4" />
+                  הוספת קטגוריה
+                </Button>
                 {selectedCategory && (
                   <Button onClick={() => setAddTemplateDialogOpen(true)} className="gap-2">
                     <Plus className="h-4 w-4" />
