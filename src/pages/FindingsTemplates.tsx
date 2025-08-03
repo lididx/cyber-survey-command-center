@@ -220,7 +220,8 @@ export default function FindingsTemplates() {
       const { data, error } = await supabase
         .from("findings_categories")
         .select("*")
-        .order("display_name");
+        .order("order_index", { ascending: true })
+        .order("display_name", { ascending: true });
       
       if (error) throw error;
       return data as FindingCategory[];
@@ -231,16 +232,46 @@ export default function FindingsTemplates() {
     setCategoriesOrder(categories);
   }, [categories]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setCategoriesOrder((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
+      const newCategoriesOrder = arrayMove(
+        categoriesOrder,
+        categoriesOrder.findIndex((item) => item.id === active.id),
+        categoriesOrder.findIndex((item) => item.id === over.id)
+      );
 
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      setCategoriesOrder(newCategoriesOrder);
+
+      // Save new order to database
+      try {
+        const updates = newCategoriesOrder.map((category, index) => ({
+          id: category.id,
+          order_index: index
+        }));
+
+        for (const update of updates) {
+          await supabase
+            .from("findings_categories")
+            .update({ order_index: update.order_index })
+            .eq("id", update.id);
+        }
+
+        toast({
+          title: "סדר הקטגוריות נשמר",
+          description: "הסדר החדש נשמר במערכת",
+        });
+      } catch (error) {
+        console.error("Error saving category order:", error);
+        toast({
+          title: "שגיאה",
+          description: "אירעה שגיאה בשמירת הסדר",
+          variant: "destructive",
+        });
+        // Revert to original order on error
+        setCategoriesOrder(categories);
+      }
     }
   };
   const { data: templates = [], refetch: refetchTemplates } = useQuery({
