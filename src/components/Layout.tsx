@@ -1,8 +1,10 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Archive, Home, Settings, BarChart3, Shield, FileText } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { LogOut, Archive, Home, Settings, BarChart3, Shield, FileText, ChevronDown, Key } from "lucide-react";
+import ChangePasswordDialog from "@/components/ChangePasswordDialog";
 interface LayoutProps {
   children: ReactNode;
 }
@@ -15,6 +17,7 @@ const Layout = ({
   } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
@@ -105,14 +108,34 @@ const Layout = ({
             </div>
             
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              {profile && <div className="text-sm text-muted-foreground text-right">
-                  <div className="font-medium">
-                    {profile.first_name} {profile.last_name}
-                  </div>
-                  <div className="text-xs">
-                    {getRoleText(profile.role, profile.gender)}
-                  </div>
-                </div>}
+              {profile && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="text-right">
+                        <div className="font-medium">
+                          {profile.first_name} {profile.last_name}
+                        </div>
+                        <div className="text-xs">
+                          {getRoleText(profile.role, profile.gender)}
+                        </div>
+                      </div>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => setShowChangePassword(true)} className="flex items-center gap-2">
+                      <Key className="h-4 w-4" />
+                      החלף סיסמה
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-destructive">
+                      <LogOut className="h-4 w-4" />
+                      התנתק
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         </div>
@@ -122,6 +145,12 @@ const Layout = ({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:px-[25px]">
         {children}
       </main>
+
+      {/* Change Password Dialog */}
+      <ChangePasswordDialog 
+        open={showChangePassword} 
+        onOpenChange={setShowChangePassword} 
+      />
     </div>;
 };
 export default Layout;
