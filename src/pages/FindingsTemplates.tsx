@@ -217,51 +217,74 @@ export default function FindingsTemplates() {
   const { data: categories = [], refetch: refetchCategories } = useQuery({
     queryKey: ["findings-categories"],
     queryFn: async () => {
+      console.log("Fetching categories...");
       const { data, error } = await supabase
         .from("findings_categories")
         .select("*")
         .order("order_index", { ascending: true })
         .order("display_name", { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching categories:", error);
+        throw error;
+      }
+      console.log("Categories fetched:", data);
       return data as FindingCategory[];
     },
   });
 
   useEffect(() => {
+    console.log("Categories updated:", categories);
     setCategoriesOrder(categories);
   }, [categories]);
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    console.log("Drag ended:", { active: active.id, over: over?.id });
 
     if (over && active.id !== over.id) {
-      const newCategoriesOrder = arrayMove(
-        categoriesOrder,
-        categoriesOrder.findIndex((item) => item.id === active.id),
-        categoriesOrder.findIndex((item) => item.id === over.id)
-      );
+      console.log("Order change detected, updating...");
+      
+      const oldIndex = categoriesOrder.findIndex((item) => item.id === active.id);
+      const newIndex = categoriesOrder.findIndex((item) => item.id === over.id);
+      
+      console.log("Moving from index", oldIndex, "to", newIndex);
+      
+      const newCategoriesOrder = arrayMove(categoriesOrder, oldIndex, newIndex);
+      console.log("New order:", newCategoriesOrder.map(c => ({ id: c.id, name: c.display_name })));
 
       setCategoriesOrder(newCategoriesOrder);
 
       // Save new order to database
       try {
-        const updates = newCategoriesOrder.map((category, index) => ({
-          id: category.id,
-          order_index: index
-        }));
-
-        for (const update of updates) {
-          await supabase
+        console.log("Saving order to database...");
+        
+        // Update each category with its new order_index
+        const updatePromises = newCategoriesOrder.map(async (category, index) => {
+          console.log(`Updating category ${category.display_name} to order_index ${index}`);
+          const { error } = await supabase
             .from("findings_categories")
-            .update({ order_index: update.order_index })
-            .eq("id", update.id);
-        }
+            .update({ order_index: index })
+            .eq("id", category.id);
+          
+          if (error) {
+            console.error(`Error updating category ${category.id}:`, error);
+            throw error;
+          }
+          return { success: true, id: category.id, index };
+        });
+
+        await Promise.all(updatePromises);
+        console.log("All categories updated successfully");
 
         toast({
           title: "סדר הקטגוריות נשמר",
           description: "הסדר החדש נשמר במערכת",
         });
+
+        // Refetch to ensure consistency
+        refetchCategories();
+        
       } catch (error) {
         console.error("Error saving category order:", error);
         toast({
