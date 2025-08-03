@@ -113,12 +113,10 @@ const CVE = () => {
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-foreground">מאגר CVE</h1>
             <div className="flex gap-2">
-              {profile?.role === "admin" && (
-                <Button onClick={() => setAddCategoryDialogOpen(true)} variant="outline" className="gap-2">
-                  <FolderPlus className="h-4 w-4" />
-                  הוספת קטגוריה
-                </Button>
-              )}
+              <Button onClick={() => setAddCategoryDialogOpen(true)} variant="outline" className="gap-2">
+                <FolderPlus className="h-4 w-4" />
+                הוספת קטגוריה
+              </Button>
               <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 הוספת מערכת חדשה
