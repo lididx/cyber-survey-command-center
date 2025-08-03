@@ -334,7 +334,7 @@ export default function FindingsTemplates() {
           <div dir="rtl">
             <div className="flex items-center gap-4 mb-6">
               <Button 
-                variant="outline" 
+                variant="default" 
                 onClick={() => setSelectedCategory(null)}
               >
                 ← חזרה לקטגוריות
