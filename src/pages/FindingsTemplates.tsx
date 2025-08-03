@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, FileText, FolderPlus, Copy } from "lucide-react";
+import { Search, Plus, FileText, FolderPlus, Copy, Shield, Database, User, Lock, Wifi, MessageSquare, AlertTriangle, Settings, Network, Server, Globe, Building } from "lucide-react";
 import { AddFindingTemplateDialog } from "@/components/AddFindingTemplateDialog";
 import { AddFindingCategoryDialog } from "@/components/AddFindingCategoryDialog";
 import { useAuth } from "@/hooks/useAuth";
@@ -75,6 +75,8 @@ function SortableCategory({ category, onSelect, onDelete, isAdmin }: SortableCat
     }
   };
 
+  const IconComponent = getCategoryIcon(category.name);
+
   return (
     <Card
       ref={setNodeRef}
@@ -97,7 +99,7 @@ function SortableCategory({ category, onSelect, onDelete, isAdmin }: SortableCat
       <CardHeader className="pr-10">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+            <IconComponent className="h-5 w-5" />
             {category.display_name}
           </div>
           {isAdmin && onDelete && (
@@ -148,6 +150,37 @@ const getSeverityColor = (severity: string) => {
       return 'bg-cyan-500';
     default:
       return 'bg-gray-500';
+  }
+};
+
+const getCategoryIcon = (categoryName: string) => {
+  switch (categoryName) {
+    case 'system_description':
+      return Building;
+    case 'architecture':
+      return Network;
+    case 'authentication':
+      return Lock;
+    case 'permissions':
+      return User;
+    case 'interfaces':
+      return Wifi;
+    case 'alerts':
+      return MessageSquare;
+    case 'error_messages':
+      return AlertTriangle;
+    case 'session_management':
+      return Settings;
+    case 'input_validation':
+      return Shield;
+    case 'database':
+      return Database;
+    case 'environments':
+      return Server;
+    case 'traffic_medium':
+      return Globe;
+    default:
+      return FileText;
   }
 };
 
