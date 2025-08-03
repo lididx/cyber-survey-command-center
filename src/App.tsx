@@ -11,6 +11,7 @@ import Archive from "./pages/Archive";
 import Statistics from "./pages/Statistics";
 import Management from "./pages/Management";
 import CVE from "./pages/CVE";
+import FindingsTemplates from "./pages/FindingsTemplates";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,11 @@ const App = () => (
             <Route path="/cve" element={
               <ProtectedRoute>
                 <CVE />
+              </ProtectedRoute>
+            } />
+            <Route path="/findings-templates" element={
+              <ProtectedRoute>
+                <FindingsTemplates />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

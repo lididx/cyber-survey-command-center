@@ -177,6 +177,86 @@ export type Database = {
           },
         ]
       }
+      findings_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_name: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_name: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      findings_templates: {
+        Row: {
+          category_id: string
+          created_at: string
+          created_by: string | null
+          damage_potential: Database["public"]["Enums"]["damage_potential"]
+          exposure_description: string
+          id: string
+          severity: Database["public"]["Enums"]["severity_level"]
+          subject: string
+          tech_risk_level: Database["public"]["Enums"]["tech_risk_level"]
+          test_description: string
+          test_findings: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          created_by?: string | null
+          damage_potential: Database["public"]["Enums"]["damage_potential"]
+          exposure_description: string
+          id?: string
+          severity: Database["public"]["Enums"]["severity_level"]
+          subject: string
+          tech_risk_level: Database["public"]["Enums"]["tech_risk_level"]
+          test_description: string
+          test_findings: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          created_by?: string | null
+          damage_potential?: Database["public"]["Enums"]["damage_potential"]
+          exposure_description?: string
+          id?: string
+          severity?: Database["public"]["Enums"]["severity_level"]
+          subject?: string
+          tech_risk_level?: Database["public"]["Enums"]["tech_risk_level"]
+          test_description?: string
+          test_findings?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "findings_templates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "findings_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -339,7 +419,9 @@ export type Database = {
       }
     }
     Enums: {
+      damage_potential: "נמוך" | "בינוני" | "גבוה" | "קריטי"
       gender: "male" | "female"
+      severity_level: "נמוכה" | "בינונית" | "גבוהה" | "קריטית"
       survey_status:
         | "received"
         | "email_sent_to_admin"
@@ -348,6 +430,7 @@ export type Database = {
         | "completion_questions_with_admin"
         | "chen_review"
         | "completed"
+      tech_risk_level: "נמוכה" | "בינונית" | "גבוהה" | "קריטית"
       user_role: "surveyor" | "manager" | "admin"
     }
     CompositeTypes: {
@@ -476,7 +559,9 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      damage_potential: ["נמוך", "בינוני", "גבוה", "קריטי"],
       gender: ["male", "female"],
+      severity_level: ["נמוכה", "בינונית", "גבוהה", "קריטית"],
       survey_status: [
         "received",
         "email_sent_to_admin",
@@ -486,6 +571,7 @@ export const Constants = {
         "chen_review",
         "completed",
       ],
+      tech_risk_level: ["נמוכה", "בינונית", "גבוהה", "קריטית"],
       user_role: ["surveyor", "manager", "admin"],
     },
   },

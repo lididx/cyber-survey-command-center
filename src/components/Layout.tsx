@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Archive, Home, Settings, BarChart3, Shield } from "lucide-react";
+import { LogOut, Archive, Home, Settings, BarChart3, Shield, FileText } from "lucide-react";
 interface LayoutProps {
   children: ReactNode;
 }
@@ -23,6 +23,7 @@ const Layout = ({
   const isStatisticsPage = location.pathname === "/statistics";
   const isManagementPage = location.pathname === "/management";
   const isCVEPage = location.pathname === "/cve";
+  const isFindingsTemplatesPage = location.pathname === "/findings-templates";
   const getRoleText = (role: string, gender: string) => {
     if (role === "surveyor") return gender === "female" ? "סוקרת" : "סוקר";
     if (role === "manager") return gender === "female" ? "מנהלת" : "מנהל";
@@ -35,22 +36,27 @@ const Layout = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              {!isArchivePage && !isStatisticsPage && !isManagementPage && !isCVEPage && <Button variant="outline" size="sm" onClick={() => navigate("/archive")} className="flex items-center gap-2">
+              {!isArchivePage && !isStatisticsPage && !isManagementPage && !isCVEPage && !isFindingsTemplatesPage && <Button variant="outline" size="sm" onClick={() => navigate("/archive")} className="flex items-center gap-2">
                   <Archive className="h-4 w-4" />
                   ארכיון
                 </Button>}
 
-              {!isArchivePage && !isStatisticsPage && !isManagementPage && !isCVEPage && <Button variant="outline" size="sm" onClick={() => navigate("/statistics")} className="flex items-center gap-2">
+              {!isArchivePage && !isStatisticsPage && !isManagementPage && !isCVEPage && !isFindingsTemplatesPage && <Button variant="outline" size="sm" onClick={() => navigate("/statistics")} className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4" />
                   סטטיסטיקה
                 </Button>}
 
-              {!isArchivePage && !isStatisticsPage && !isManagementPage && !isCVEPage && <Button variant="outline" size="sm" onClick={() => navigate("/cve")} className="flex items-center gap-2">
+              {!isArchivePage && !isStatisticsPage && !isManagementPage && !isCVEPage && !isFindingsTemplatesPage && <Button variant="outline" size="sm" onClick={() => navigate("/cve")} className="flex items-center gap-2">
                   <Shield className="h-4 w-4" />
                   CVE
                 </Button>}
+
+              {!isArchivePage && !isStatisticsPage && !isManagementPage && !isCVEPage && !isFindingsTemplatesPage && <Button variant="outline" size="sm" onClick={() => navigate("/findings-templates")} className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  תבניות ממצאים
+                </Button>}
               
-              {(isArchivePage || isStatisticsPage || isManagementPage || isCVEPage) && <Button variant="outline" size="sm" onClick={() => navigate("/")} className="flex items-center gap-2">
+              {(isArchivePage || isStatisticsPage || isManagementPage || isCVEPage || isFindingsTemplatesPage) && <Button variant="outline" size="sm" onClick={() => navigate("/")} className="flex items-center gap-2">
                   <Home className="h-4 w-4" />
                   דף הבית
                 </Button>}
