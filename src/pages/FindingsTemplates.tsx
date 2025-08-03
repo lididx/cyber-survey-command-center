@@ -10,12 +10,74 @@ import { AddFindingTemplateDialog } from "@/components/AddFindingTemplateDialog"
 import { AddFindingCategoryDialog } from "@/components/AddFindingCategoryDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import Layout from "@/components/Layout";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface FindingCategory {
   id: string;
   name: string;
   display_name: string;
   description: string;
+  order_index?: number;
+}
+
+interface SortableCategoryProps {
+  category: FindingCategory;
+  onSelect: (categoryId: string) => void;
+}
+
+function SortableCategory({ category, onSelect }: SortableCategoryProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: category.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={() => onSelect(category.id)}
+    >
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          {category.display_name}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground">{category.description}</p>
+      </CardContent>
+    </Card>
+  );
 }
 
 interface FindingTemplate {
@@ -55,8 +117,16 @@ export default function FindingsTemplates() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [addTemplateDialogOpen, setAddTemplateDialogOpen] = useState(false);
   const [addCategoryDialogOpen, setAddCategoryDialogOpen] = useState(false);
+  const [categoriesOrder, setCategoriesOrder] = useState<FindingCategory[]>([]);
   const { profile } = useAuth();
   const { toast } = useToast();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const copyToClipboard = (text: string, fieldName: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -80,6 +150,22 @@ export default function FindingsTemplates() {
     },
   });
 
+  useEffect(() => {
+    setCategoriesOrder(categories);
+  }, [categories]);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setCategoriesOrder((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
   const { data: templates = [], refetch: refetchTemplates } = useQuery({
     queryKey: ["findings-templates", selectedCategory],
     queryFn: async () => {
@@ -105,61 +191,63 @@ export default function FindingsTemplates() {
     template.test_description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
+  const selectedCategoryData = categoriesOrder.find(cat => cat.id === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-background p-6 rtl">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-3xl font-bold text-foreground">תבניות ממצאים</h1>
-            <div className="flex gap-2">
-              <Button onClick={() => setAddCategoryDialogOpen(true)} variant="outline" className="gap-2">
-                <FolderPlus className="h-4 w-4" />
-                הוספת קטגוריה
-              </Button>
-              {selectedCategory && (
-                <Button onClick={() => setAddTemplateDialogOpen(true)} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  הוספת תבנית חדשה
+    <Layout>
+      <div className="min-h-screen bg-background p-6" dir="rtl">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-3xl font-bold text-foreground">תבניות ממצאים</h1>
+              <div className="flex gap-2">
+                <Button onClick={() => setAddCategoryDialogOpen(true)} variant="outline" className="gap-2">
+                  <FolderPlus className="h-4 w-4" />
+                  הוספת קטגוריה
                 </Button>
-              )}
+                {selectedCategory && (
+                  <Button onClick={() => setAddTemplateDialogOpen(true)} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    הוספת תבנית חדשה
+                  </Button>
+                )}
+              </div>
+            </div>
+            
+            <div className="relative mb-6">
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="חיפוש בתבניות..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pr-10"
+              />
             </div>
           </div>
-          
-          <div className="relative mb-6">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="חיפוש בתבניות..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10"
-            />
-          </div>
-        </div>
 
         {!selectedCategory ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <Card
-                key={category.id}
-                className="cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => setSelectedCategory(category.id)}
-              >
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    {category.display_name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{category.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+          <div>
+            <p className="text-sm text-muted-foreground mb-4">תוכל לגרור ולשחרר קטגוריות כדי לסדר אותן לפי הצורך</p>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={categoriesOrder.map(cat => cat.id)} strategy={verticalListSortingStrategy}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {categoriesOrder.map((category) => (
+                    <SortableCategory
+                      key={category.id}
+                      category={category}
+                      onSelect={setSelectedCategory}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           </div>
         ) : (
-          <div>
+          <div dir="rtl">
             <div className="flex items-center gap-4 mb-6">
               <Button 
                 variant="outline" 
@@ -176,11 +264,6 @@ export default function FindingsTemplates() {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>{template.subject}</span>
-                      <div className="flex gap-2">
-                        <Badge className={`${getSeverityColor(template.severity)} text-white`}>
-                          {template.severity}
-                        </Badge>
-                      </div>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -288,5 +371,6 @@ export default function FindingsTemplates() {
         }}
       />
     </div>
+    </Layout>
   );
 }
