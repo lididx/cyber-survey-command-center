@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -56,6 +57,13 @@ export function AddFindingTemplateDialog({
     },
   });
 
+  // Update the category when categoryId changes
+  React.useEffect(() => {
+    if (categoryId) {
+      form.setValue("category_id", categoryId);
+    }
+  }, [categoryId, form]);
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) return;
 
@@ -100,7 +108,7 @@ export function AddFindingTemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle>הוספת תבנית ממצא חדשה</DialogTitle>
         </DialogHeader>
@@ -164,7 +172,7 @@ export function AddFindingTemplateDialog({
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
                 name="severity"

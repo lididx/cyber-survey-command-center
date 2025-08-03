@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, FileText, FolderPlus } from "lucide-react";
+import { Search, Plus, FileText, FolderPlus, Copy } from "lucide-react";
 import { AddFindingTemplateDialog } from "@/components/AddFindingTemplateDialog";
 import { AddFindingCategoryDialog } from "@/components/AddFindingCategoryDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface FindingCategory {
   id: string;
@@ -33,13 +34,17 @@ interface FindingTemplate {
 const getSeverityColor = (severity: string) => {
   switch (severity) {
     case 'קריטית':
-      return 'bg-red-500';
+    case 'קריטי':
+      return 'bg-purple-500';
     case 'גבוהה':
-      return 'bg-orange-500';
+    case 'גבוה':
+      return 'bg-red-500';
     case 'בינונית':
-      return 'bg-yellow-500';
+    case 'בינוני':
+      return 'bg-orange-500';
     case 'נמוכה':
-      return 'bg-green-500';
+    case 'נמוך':
+      return 'bg-cyan-500';
     default:
       return 'bg-gray-500';
   }
@@ -51,6 +56,16 @@ export default function FindingsTemplates() {
   const [addTemplateDialogOpen, setAddTemplateDialogOpen] = useState(false);
   const [addCategoryDialogOpen, setAddCategoryDialogOpen] = useState(false);
   const { profile } = useAuth();
+  const { toast } = useToast();
+
+  const copyToClipboard = (text: string, fieldName: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast({
+        title: "הועתק בהצלחה",
+        description: `${fieldName} הועתק ללוח`,
+      });
+    });
+  };
 
   const { data: categories = [], refetch: refetchCategories } = useQuery({
     queryKey: ["findings-categories"],
@@ -170,32 +185,68 @@ export default function FindingsTemplates() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <h4 className="font-semibold mb-2">תיאור הבדיקה:</h4>
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold">תיאור הבדיקה:</h4>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => copyToClipboard(template.test_description, "תיאור הבדיקה")}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <p className="text-muted-foreground">{template.test_description}</p>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                       <div>
                         <span className="font-medium">סבירות: </span>
-                        <Badge variant="outline">{template.severity}</Badge>
+                        <Badge className={`${getSeverityColor(template.severity)} text-white`}>
+                          {template.severity}
+                        </Badge>
                       </div>
                       <div>
                         <span className="font-medium">פוטנציאל נזק: </span>
-                        <Badge variant="outline">{template.damage_potential}</Badge>
+                        <Badge className={`${getSeverityColor(template.damage_potential)} text-white`}>
+                          {template.damage_potential}
+                        </Badge>
                       </div>
                       <div>
                         <span className="font-medium">רמת סיכון טכנולוגית: </span>
-                        <Badge variant="outline">{template.tech_risk_level}</Badge>
+                        <Badge className={`${getSeverityColor(template.tech_risk_level)} text-white`}>
+                          {template.tech_risk_level}
+                        </Badge>
                       </div>
                     </div>
 
                     <div>
-                      <h4 className="font-semibold mb-2">ממצאי הבדיקה:</h4>
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold">ממצאי הבדיקה:</h4>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => copyToClipboard(template.test_findings, "ממצאי הבדיקה")}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <p className="text-muted-foreground whitespace-pre-wrap">{template.test_findings}</p>
                     </div>
 
                     <div>
-                      <h4 className="font-semibold mb-2">תיאור החשיפה / הסיכונים:</h4>
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold">תיאור החשיפה / הסיכונים:</h4>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => copyToClipboard(template.exposure_description, "תיאור החשיפה / הסיכונים")}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <p className="text-muted-foreground whitespace-pre-wrap">{template.exposure_description}</p>
                     </div>
                   </CardContent>

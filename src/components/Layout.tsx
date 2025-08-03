@@ -19,52 +19,80 @@ const Layout = ({
     await signOut();
     navigate("/auth");
   };
-  const isArchivePage = location.pathname === "/archive";
-  const isStatisticsPage = location.pathname === "/statistics";
-  const isManagementPage = location.pathname === "/management";
-  const isCVEPage = location.pathname === "/cve";
-  const isFindingsTemplatesPage = location.pathname === "/findings-templates";
+  const currentPath = location.pathname;
   const getRoleText = (role: string, gender: string) => {
     if (role === "surveyor") return gender === "female" ? "סוקרת" : "סוקר";
     if (role === "manager") return gender === "female" ? "מנהלת" : "מנהל";
     if (role === "admin") return "מנהל מערכת";
     return role;
   };
-  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800" dir="rtl">
       {/* Header */}
       <header className="bg-white dark:bg-slate-800 shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              {!isArchivePage && !isStatisticsPage && !isManagementPage && !isCVEPage && !isFindingsTemplatesPage && <Button variant="outline" size="sm" onClick={() => navigate("/archive")} className="flex items-center gap-2">
-                  <Archive className="h-4 w-4" />
-                  ארכיון
-                </Button>}
+              <Button 
+                variant={currentPath === "/" ? "default" : "outline"} 
+                size="sm" 
+                onClick={() => navigate("/")} 
+                className="flex items-center gap-2"
+              >
+                <Home className="h-4 w-4" />
+                עמוד הבית
+              </Button>
 
-              {!isArchivePage && !isStatisticsPage && !isManagementPage && !isCVEPage && !isFindingsTemplatesPage && <Button variant="outline" size="sm" onClick={() => navigate("/statistics")} className="flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" />
-                  סטטיסטיקה
-                </Button>}
+              <Button 
+                variant={currentPath === "/statistics" ? "default" : "outline"} 
+                size="sm" 
+                onClick={() => navigate("/statistics")} 
+                className="flex items-center gap-2"
+              >
+                <BarChart3 className="h-4 w-4" />
+                סטטיסטיקה
+              </Button>
 
-              {!isArchivePage && !isStatisticsPage && !isManagementPage && !isCVEPage && !isFindingsTemplatesPage && <Button variant="outline" size="sm" onClick={() => navigate("/cve")} className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  CVE
-                </Button>}
+              <Button 
+                variant={currentPath === "/cve" ? "default" : "outline"} 
+                size="sm" 
+                onClick={() => navigate("/cve")} 
+                className="flex items-center gap-2"
+              >
+                <Shield className="h-4 w-4" />
+                CVE
+              </Button>
 
-              {!isArchivePage && !isStatisticsPage && !isManagementPage && !isCVEPage && !isFindingsTemplatesPage && <Button variant="outline" size="sm" onClick={() => navigate("/findings-templates")} className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  תבניות ממצאים
-                </Button>}
-              
-              {(isArchivePage || isStatisticsPage || isManagementPage || isCVEPage || isFindingsTemplatesPage) && <Button variant="outline" size="sm" onClick={() => navigate("/")} className="flex items-center gap-2">
-                  <Home className="h-4 w-4" />
-                  דף הבית
-                </Button>}
+              <Button 
+                variant={currentPath === "/findings-templates" ? "default" : "outline"} 
+                size="sm" 
+                onClick={() => navigate("/findings-templates")} 
+                className="flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                ממצאים
+              </Button>
 
-              {profile?.role === "admin" && !isManagementPage && <Button variant="outline" size="sm" onClick={() => navigate("/management")} className="flex items-center gap-2">
+              <Button 
+                variant={currentPath === "/archive" ? "default" : "outline"} 
+                size="sm" 
+                onClick={() => navigate("/archive")} 
+                className="flex items-center gap-2"
+              >
+                <Archive className="h-4 w-4" />
+                ארכיון
+              </Button>
+
+              {profile?.role === "admin" && (
+                <Button 
+                  variant={currentPath === "/management" ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={() => navigate("/management")} 
+                  className="flex items-center gap-2"
+                >
                   <Settings className="h-4 w-4" />
                   ניהול
-                </Button>}
+                </Button>
+              )}
               
               <Button variant="outline" size="sm" onClick={handleSignOut} className="flex items-center gap-2">
                 <LogOut className="h-4 w-4" />
