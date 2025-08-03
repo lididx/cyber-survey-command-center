@@ -348,6 +348,14 @@ export default function FindingsTemplates() {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>{template.subject}</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => copyToClipboard(template.subject, "נושא הממצא")}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
