@@ -91,8 +91,7 @@ const Dashboard = () => {
       let query = supabase.from("surveys").select(`
           *,
           clients (name, logo_url),
-          contacts (*),
-          profiles (first_name, last_name)
+          contacts (*)
         `).eq("is_archived", false);
 
       // If user is not admin or manager, only show their own surveys
@@ -108,7 +107,24 @@ const Dashboard = () => {
       });
       
       if (error) throw error;
-      setSurveys((data as any) || []);
+      
+      // Fetch user profiles separately for each survey
+      const surveysWithProfiles = await Promise.all(
+        (data || []).map(async (survey: any) => {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("first_name, last_name")
+            .eq("id", survey.user_id)
+            .single();
+          
+          return {
+            ...survey,
+            profiles: profileData
+          };
+        })
+      );
+      
+      setSurveys(surveysWithProfiles);
     } catch (error: any) {
       toast({
         title: "שגיאה",
