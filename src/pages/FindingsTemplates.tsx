@@ -42,15 +42,18 @@ interface FindingCategory {
 interface SortableCategoryProps {
   category: FindingCategory;
   onSelect: (categoryId: string) => void;
+  onDelete?: (categoryId: string) => void;
+  isAdmin: boolean;
 }
 
-function SortableCategory({ category, onSelect }: SortableCategoryProps) {
+function SortableCategory({ category, onSelect, onDelete, isAdmin }: SortableCategoryProps) {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
+    isDragging,
   } = useSortable({ id: category.id });
 
   const style = {
@@ -58,19 +61,55 @@ function SortableCategory({ category, onSelect }: SortableCategoryProps) {
     transition,
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only trigger select if we're not dragging
+    if (!isDragging) {
+      onSelect(category.id);
+    }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    if (onDelete) {
+      onDelete(category.id);
+    }
+  };
+
   return (
     <Card
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className="cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => onSelect(category.id)}
+      className="cursor-pointer hover:shadow-lg transition-shadow relative"
+      onClick={handleCardClick}
     >
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          {category.display_name}
+      {/* Drag handle - separate from main card content */}
+      <div 
+        {...attributes}
+        {...listeners}
+        className="absolute top-2 left-2 w-6 h-6 cursor-grab active:cursor-grabbing"
+        style={{ touchAction: 'none' }}
+      >
+        <div className="w-full h-full bg-muted rounded flex items-center justify-center">
+          <div className="w-3 h-3 bg-muted-foreground/30 rounded-sm"></div>
+        </div>
+      </div>
+
+      <CardHeader className="pr-10">
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            {category.display_name}
+          </div>
+          {isAdmin && onDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDeleteClick}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            >
+              ×
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -137,6 +176,44 @@ export default function FindingsTemplates() {
     });
   };
 
+  const handleDeleteCategory = async (categoryId: string) => {
+    if (!confirm("האם אתה בטוח שברצונך למחוק את הקטגוריה? פעולה זו תמחק גם את כל התבניות בקטגוריה.")) {
+      return;
+    }
+
+    try {
+      // First delete all templates in this category
+      await supabase
+        .from("findings_templates")
+        .delete()
+        .eq("category_id", categoryId);
+
+      // Then delete the category
+      const { error } = await supabase
+        .from("findings_categories")
+        .delete()
+        .eq("id", categoryId);
+
+      if (error) throw error;
+
+      toast({
+        title: "קטגוריה נמחקה בהצלחה",
+        description: "הקטגוריה וכל התבניות שלה נמחקו מהמערכת",
+      });
+
+      refetchCategories();
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה במחיקת הקטגוריה",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const isAdmin = profile?.role === "admin";
+
   const { data: categories = [], refetch: refetchCategories } = useQuery({
     queryKey: ["findings-categories"],
     queryFn: async () => {
@@ -201,10 +278,12 @@ export default function FindingsTemplates() {
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-3xl font-bold text-foreground">תבניות ממצאים</h1>
               <div className="flex gap-2">
-                <Button onClick={() => setAddCategoryDialogOpen(true)} variant="outline" className="gap-2">
-                  <FolderPlus className="h-4 w-4" />
-                  הוספת קטגוריה
-                </Button>
+                {isAdmin && (
+                  <Button onClick={() => setAddCategoryDialogOpen(true)} variant="outline" className="gap-2">
+                    <FolderPlus className="h-4 w-4" />
+                    הוספת קטגוריה
+                  </Button>
+                )}
                 {selectedCategory && (
                   <Button onClick={() => setAddTemplateDialogOpen(true)} className="gap-2">
                     <Plus className="h-4 w-4" />
@@ -227,7 +306,10 @@ export default function FindingsTemplates() {
 
         {!selectedCategory ? (
           <div>
-            <p className="text-sm text-muted-foreground mb-4">תוכל לגרור ולשחרר קטגוריות כדי לסדר אותן לפי הצורך</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              תוכל לגרור ולשחרר קטגוריות כדי לסדר אותן לפי הצורך
+              {isAdmin && " • לחיצה על × תמחק את הקטגוריה"}
+            </p>
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -240,6 +322,8 @@ export default function FindingsTemplates() {
                       key={category.id}
                       category={category}
                       onSelect={setSelectedCategory}
+                      onDelete={isAdmin ? handleDeleteCategory : undefined}
+                      isAdmin={isAdmin}
                     />
                   ))}
                 </div>
