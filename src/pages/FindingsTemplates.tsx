@@ -131,6 +131,7 @@ interface FindingTemplate {
   tech_risk_level: string;
   test_findings: string;
   exposure_description: string;
+  recommendations?: string;
   created_at: string;
 }
 
@@ -510,6 +511,24 @@ export default function FindingsTemplates() {
                         </Button>
                       </div>
                       <p className="text-muted-foreground whitespace-pre-wrap">{template.exposure_description}</p>
+                    </div>
+
+                    {/* המלצות */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold">המלצות:</h4>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => copyToClipboard((template as any).recommendations || "אין המלצות", "המלצות")}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-muted-foreground whitespace-pre-wrap">
+                        {(template as any).recommendations || "אין המלצות מוגדרות"}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>

@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, ExternalLink, FolderPlus } from "lucide-react";
+import { Plus, Search, ExternalLink, FolderPlus, Edit, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import AddCVESystemDialog from "@/components/AddCVESystemDialog";
@@ -32,6 +32,7 @@ const CVE = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [addCategoryDialogOpen, setAddCategoryDialogOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const { toast } = useToast();
   const { profile } = useAuth();
 
@@ -87,6 +88,34 @@ const CVE = () => {
     });
   };
 
+  const handleDeleteSystem = async (systemId: string) => {
+    if (!confirm("האם אתה בטוח שברצונך למחוק את המערכת?")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("cve_systems")
+        .delete()
+        .eq("id", systemId);
+
+      if (error) throw error;
+
+      refetchSystems();
+      toast({
+        title: "הצלחה",
+        description: "המערכת נמחקה בהצלחה",
+      });
+    } catch (error) {
+      console.error("Error deleting CVE system:", error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה במחיקת המערכת",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (categoriesLoading || systemsLoading) {
     return (
       <Layout>
@@ -113,6 +142,23 @@ const CVE = () => {
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-foreground">מאגר CVE</h1>
             <div className="flex gap-2">
+              <Button 
+                onClick={() => setEditMode(!editMode)} 
+                variant={editMode ? "destructive" : "outline"} 
+                className="gap-2"
+              >
+                {editMode ? (
+                  <>
+                    <X className="h-4 w-4" />
+                    בטל עריכה
+                  </>
+                ) : (
+                  <>
+                    <Edit className="h-4 w-4" />
+                    עריכה
+                  </>
+                )}
+              </Button>
               <Button onClick={() => setAddCategoryDialogOpen(true)} variant="outline" className="gap-2">
                 <FolderPlus className="h-4 w-4" />
                 הוספת קטגוריה
@@ -194,18 +240,41 @@ const CVE = () => {
                           className="p-3 rounded-lg border border-border hover:border-primary/50 transition-colors group"
                         >
                           <div className="flex justify-between items-start gap-2">
-                            <h4 className="font-medium text-foreground text-sm leading-tight">
-                              {system.name}
-                            </h4>
                             <a
                               href={system.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-muted-foreground hover:text-primary transition-colors flex-shrink-0"
-                              title="פתח קישור CVE"
+                              className="font-medium text-foreground text-sm leading-tight hover:text-primary transition-colors cursor-pointer flex-1"
+                              title="לחץ לפתיחת הקישור"
                             >
-                              <ExternalLink className="h-4 w-4" />
+                              {system.name}
                             </a>
+                            <div className="flex gap-1">
+                              {editMode && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleDeleteSystem(system.id);
+                                  }}
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+                                  title="מחק מערכת"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              )}
+                              <a
+                                href={system.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-muted-foreground hover:text-primary transition-colors flex-shrink-0"
+                                title="פתח קישור CVE"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            </div>
                           </div>
                         </div>
                       ))}

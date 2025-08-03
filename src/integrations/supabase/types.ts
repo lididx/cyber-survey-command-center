@@ -215,6 +215,7 @@ export type Database = {
           damage_potential: Database["public"]["Enums"]["damage_potential"]
           exposure_description: string
           id: string
+          recommendations: string | null
           severity: Database["public"]["Enums"]["severity_level"]
           subject: string
           tech_risk_level: Database["public"]["Enums"]["tech_risk_level"]
@@ -229,6 +230,7 @@ export type Database = {
           damage_potential: Database["public"]["Enums"]["damage_potential"]
           exposure_description: string
           id?: string
+          recommendations?: string | null
           severity: Database["public"]["Enums"]["severity_level"]
           subject: string
           tech_risk_level: Database["public"]["Enums"]["tech_risk_level"]
@@ -243,6 +245,7 @@ export type Database = {
           damage_potential?: Database["public"]["Enums"]["damage_potential"]
           exposure_description?: string
           id?: string
+          recommendations?: string | null
           severity?: Database["public"]["Enums"]["severity_level"]
           subject?: string
           tech_risk_level?: Database["public"]["Enums"]["tech_risk_level"]

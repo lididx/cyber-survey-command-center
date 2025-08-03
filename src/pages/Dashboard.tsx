@@ -35,6 +35,10 @@ interface Survey {
     phone: string;
     role: string;
   }>;
+  profiles: {
+    first_name: string;
+    last_name: string;
+  } | null;
 }
 const Dashboard = () => {
   const {
@@ -87,7 +91,8 @@ const Dashboard = () => {
       let query = supabase.from("surveys").select(`
           *,
           clients (name, logo_url),
-          contacts (*)
+          contacts (*),
+          profiles!surveys_user_id_fkey (first_name, last_name)
         `).eq("is_archived", false);
 
       // If user is not admin or manager, only show their own surveys
@@ -348,9 +353,9 @@ const Dashboard = () => {
                             )}
                             <div className="text-center">אנשי קשר</div>
                             <div className="text-center">תאריך ביצוע הסקר</div>
-                            {profile && ['admin', 'manager'].includes(profile.role) && (
-                              <div className="text-center">אחראי על הסקר</div>
-                            )}
+                             {profile && ['admin', 'manager'].includes(profile.role) && (
+                               <div className="text-center">משתמש יוצר</div>
+                             )}
                             <div className="text-center">פעולות</div>
                           </div>
                         </>
@@ -448,12 +453,12 @@ const Dashboard = () => {
                               {new Date(survey.survey_date).toLocaleDateString("he-IL")}
                             </div>
                             
-                            {/* אחראי על הסקר - רק למנהלים ומנהלות */}
-                            {profile && ['admin', 'manager'].includes(profile.role) && (
-                              <div className="text-sm text-center">
-                                לא זמין
-                              </div>
-                            )}
+                             {/* משתמש יוצר - רק למנהלים ומנהלות */}
+                             {profile && ['admin', 'manager'].includes(profile.role) && (
+                               <div className="text-sm text-center">
+                                 {survey.profiles ? `${survey.profiles.first_name} ${survey.profiles.last_name}` : 'לא זמין'}
+                               </div>
+                             )}
                             
                             {/* פעולות */}
                             <div className="flex gap-1 flex-wrap justify-center">

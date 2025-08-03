@@ -22,6 +22,7 @@ const formSchema = z.object({
   tech_risk_level: z.enum(["נמוכה", "בינונית", "גבוהה", "קריטית"]),
   test_findings: z.string().min(1, "יש להזין ממצאי בדיקה"),
   exposure_description: z.string().min(1, "יש להזין תיאור חשיפה"),
+  recommendations: z.string().optional(),
 });
 
 interface AddFindingTemplateDialogProps {
@@ -54,6 +55,7 @@ export function AddFindingTemplateDialog({
       tech_risk_level: "בינונית",
       test_findings: "",
       exposure_description: "",
+      recommendations: "",
     },
   });
 
@@ -78,6 +80,7 @@ export function AddFindingTemplateDialog({
         tech_risk_level: values.tech_risk_level,
         test_findings: values.test_findings,
         exposure_description: values.exposure_description,
+        recommendations: values.recommendations || "",
         created_by: user.id,
       };
 
@@ -273,6 +276,24 @@ export function AddFindingTemplateDialog({
                   <FormControl>
                     <Textarea
                       placeholder="תאר את החשיפה והסיכונים"
+                      className="min-h-[120px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="recommendations"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>המלצות</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="רשום המלצות לתיקון הבעיה"
                       className="min-h-[120px]"
                       {...field}
                     />
