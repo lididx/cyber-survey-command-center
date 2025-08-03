@@ -457,19 +457,19 @@ const Management = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Add New Client */}
-                <form onSubmit={addClient} className="flex gap-2 items-end">
-                  <div className="flex-1">
-                    <Input
-                      value={newClientName}
-                      onChange={(e) => setNewClientName(e.target.value)}
-                      placeholder="שם לקוח חדש"
-                      dir="rtl"
-                      required
-                    />
-                  </div>
-                  <Button type="submit" disabled={addingClient || !newClientName.trim()} size="sm">
-                    {addingClient ? "מוסיף..." : "הוסף"}
-                  </Button>
+                 <form onSubmit={addClient} className="flex gap-2 items-end flex-row-reverse">
+                   <div className="flex-1">
+                     <Input
+                       value={newClientName}
+                       onChange={(e) => setNewClientName(e.target.value)}
+                       placeholder="שם לקוח חדש"
+                       dir="rtl"
+                       required
+                     />
+                   </div>
+                   <Button type="submit" disabled={addingClient || !newClientName.trim()} size="sm">
+                     {addingClient ? "מוסיף..." : "הוסף"}
+                   </Button>
                   <div className="relative">
                     <input
                       type="file"
@@ -509,15 +509,15 @@ const Management = () => {
                         key={client.id}
                         className="flex items-center justify-between p-3 border rounded hover:bg-muted/50 transition-colors"
                       >
-                        <div className="flex items-center gap-3">
-                          {client.logo_url ? (
-                            <img src={client.logo_url} alt={client.name} className="w-8 h-8 object-contain rounded" />
-                          ) : (
-                            <Image className="w-8 h-8 text-muted-foreground" />
-                          )}
-                          <span className="font-medium">{client.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
+                         <div className="flex items-center gap-3 flex-row-reverse">
+                           <span className="font-medium">{client.name}</span>
+                           {client.logo_url ? (
+                             <img src={client.logo_url} alt={client.name} className="w-8 h-8 object-contain rounded" />
+                           ) : (
+                             <Image className="w-8 h-8 text-muted-foreground" />
+                           )}
+                         </div>
+                         <div className="flex items-center gap-2 flex-row-reverse">
                           <div className="relative">
                             <input
                               type="file"
@@ -660,11 +660,11 @@ const Management = () => {
                     </div>
                   </div>
 
-                  <div className="flex justify-start gap-2">
-                    <Button type="submit" disabled={userLoading}>
-                      {userLoading ? "יוצר..." : "צור משתמש"}
-                    </Button>
-                  </div>
+                   <div className="flex justify-end gap-2">
+                     <Button type="submit" disabled={userLoading}>
+                       {userLoading ? "יוצר..." : "צור משתמש"}
+                     </Button>
+                   </div>
                 </form>
               </CardContent>
             </Card>
@@ -684,21 +684,21 @@ const Management = () => {
                         key={profile.id}
                         className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        <div className="flex items-center gap-4">
-                          <div>
-                            <div className="font-medium">
-                              {profile.first_name} {profile.last_name}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {profile.email}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              נוסף ב: {new Date(profile.created_at).toLocaleDateString("he-IL")}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
+                         <div className="flex items-center gap-4 flex-row-reverse">
+                           <div className="text-right">
+                             <div className="font-medium">
+                               {profile.first_name} {profile.last_name}
+                             </div>
+                             <div className="text-sm text-muted-foreground">
+                               {profile.email}
+                             </div>
+                             <div className="text-xs text-muted-foreground">
+                               נוסף ב: {new Date(profile.created_at).toLocaleDateString("he-IL")}
+                             </div>
+                           </div>
+                         </div>
+                         
+                         <div className="flex items-center gap-2 flex-row-reverse">
                           <Badge variant={profile.role === 'admin' ? 'default' : profile.role === 'manager' ? 'secondary' : 'outline'}>
                             {profile.role === 'admin' ? 'מנהל מערכת' : profile.role === 'manager' ? 'מנהל' : 'בודק'}
                           </Badge>

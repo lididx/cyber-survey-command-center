@@ -97,22 +97,22 @@ function SortableCategory({ category, onSelect, onDelete, isAdmin }: SortableCat
       </div>
 
       <CardHeader className="pr-10">
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <IconComponent className="h-5 w-5" />
-            {category.display_name}
-          </div>
-          {isAdmin && onDelete && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDeleteClick}
-              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-            >
-              ×
-            </Button>
-          )}
-        </CardTitle>
+        <CardTitle className="flex items-center justify-between flex-row-reverse">
+           {isAdmin && onDelete && (
+             <Button
+               variant="ghost"
+               size="sm"
+               onClick={handleDeleteClick}
+               className="text-red-500 hover:text-red-700 hover:bg-red-50"
+             >
+               ×
+             </Button>
+           )}
+           <div className="flex items-center gap-2 flex-row-reverse">
+             <span>{category.display_name}</span>
+             <IconComponent className="h-5 w-5" />
+           </div>
+         </CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-muted-foreground">{category.description}</p>
@@ -363,9 +363,8 @@ export default function FindingsTemplates() {
       <div className="min-h-screen bg-background p-6" dir="rtl">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h1 className="text-3xl font-bold text-foreground">תבניות ממצאים</h1>
-              <div className="flex gap-2">
+             <div className="flex justify-between items-center mb-4 flex-row-reverse">
+               <div className="flex gap-2">
                 <Button onClick={() => setAddCategoryDialogOpen(true)} variant="outline" className="gap-2">
                   <FolderPlus className="h-4 w-4" />
                   הוספת קטגוריה
@@ -375,9 +374,10 @@ export default function FindingsTemplates() {
                     <Plus className="h-4 w-4" />
                     הוספת תבנית חדשה
                   </Button>
-                )}
-              </div>
-            </div>
+                 )}
+               </div>
+               <h1 className="text-3xl font-bold text-foreground">תבניות ממצאים</h1>
+             </div>
             
             <div className="relative mb-6">
               <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -432,31 +432,31 @@ export default function FindingsTemplates() {
               {filteredTemplates.map((template) => (
                 <Card key={template.id}>
                   <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>{template.subject}</span>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => copyToClipboard(template.subject, "נושא הממצא")}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </CardTitle>
+                     <CardTitle className="flex items-center justify-between flex-row-reverse">
+                       <Button 
+                         variant="outline" 
+                         size="sm" 
+                         onClick={() => copyToClipboard(template.subject, "נושא הממצא")}
+                         className="h-8 w-8 p-0"
+                       >
+                         <Copy className="h-4 w-4" />
+                       </Button>
+                       <span className="text-right">{template.subject}</span>
+                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold">תיאור הבדיקה:</h4>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => copyToClipboard(template.test_description, "תיאור הבדיקה")}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
+                         <div className="flex items-center justify-between mb-2 flex-row-reverse">
+                         <Button 
+                           variant="outline" 
+                           size="sm" 
+                           onClick={() => copyToClipboard(template.test_description, "תיאור הבדיקה")}
+                           className="h-8 w-8 p-0"
+                         >
+                           <Copy className="h-4 w-4" />
+                         </Button>
+                         <h4 className="font-semibold">תיאור הבדיקה:</h4>
+                       </div>
                       <p className="text-muted-foreground">{template.test_description}</p>
                     </div>
                     

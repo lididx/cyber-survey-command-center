@@ -301,13 +301,13 @@ const Dashboard = () => {
   }
   return <Layout>
       <div className="space-y-6" dir="rtl">
-        <div className="flex justify-between items-center">
-          <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            הוסף סקר חדש
-          </Button>
-          <h1 className="text-3xl font-bold text-foreground">דשבורד סקרים</h1>
-        </div>
+         <div className="flex justify-between items-center flex-row-reverse">
+           <h1 className="text-3xl font-bold text-foreground">דשבורד סקרים</h1>
+           <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
+             <Plus className="h-4 w-4" />
+             הוסף סקר חדש
+           </Button>
+         </div>
 
         {Object.keys(groupedSurveys).length === 0 ? (
           <Card>
@@ -324,29 +324,29 @@ const Dashboard = () => {
             {Object.entries(groupedSurveys).map(([clientName, clientSurveys]) => (
               <Card key={clientName}>
                 <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleClientExpansion(clientName)}>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {expandedClients.has(clientName) ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-                      
-                      {/* תצוגת לוגו או שם לקוח */}
-                       {clientSurveys[0]?.clients?.logo_url ? (
-                         <div className="flex items-center gap-3">
-                           <img 
-                             src={clientSurveys[0].clients.logo_url} 
-                             alt={clientName} 
-                             className="w-12 h-12 object-contain rounded"
-                           />
-                           <span className="text-sm text-muted-foreground">{clientName}</span>
-                         </div>
-                       ) : (
-                         <span>{clientName}</span>
-                       )}
-                      
-                      <Badge variant="secondary">
-                        {clientSurveys.length} סקר{clientSurveys.length > 1 ? "ים" : ""}
-                      </Badge>
-                    </div>
-                  </CardTitle>
+                   <CardTitle className="flex items-center justify-between flex-row-reverse">
+                     <Badge variant="secondary">
+                       {clientSurveys.length} סקר{clientSurveys.length > 1 ? "ים" : ""}
+                     </Badge>
+                     <div className="flex items-center gap-3 flex-row-reverse">
+                       
+                       {/* תצוגת לוגו או שם לקוח */}
+                        {clientSurveys[0]?.clients?.logo_url ? (
+                          <div className="flex items-center gap-3 flex-row-reverse">
+                            <span className="text-sm text-muted-foreground">{clientName}</span>
+                            <img 
+                              src={clientSurveys[0].clients.logo_url} 
+                              alt={clientName} 
+                              className="w-12 h-12 object-contain rounded"
+                            />
+                          </div>
+                        ) : (
+                          <span>{clientName}</span>
+                        )}
+                       
+                       {expandedClients.has(clientName) ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                     </div>
+                   </CardTitle>
                 </CardHeader>
                 
                 {expandedClients.has(clientName) && (

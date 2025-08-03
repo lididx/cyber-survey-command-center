@@ -155,9 +155,8 @@ const CVE = () => {
       <div className="container mx-auto p-6 space-y-6" dir="rtl">
         {/* Header */}
         <div className="flex flex-col space-y-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-foreground">מאגר CVE</h1>
-            <div className="flex gap-2">
+           <div className="flex justify-between items-center flex-row-reverse">
+             <div className="flex gap-2">
               <Button 
                 onClick={() => setEditMode(!editMode)} 
                 variant={editMode ? "destructive" : "outline"} 
@@ -182,9 +181,10 @@ const CVE = () => {
               <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 הוספת מערכת חדשה
-              </Button>
-            </div>
-          </div>
+               </Button>
+             </div>
+             <h1 className="text-3xl font-bold text-foreground">מאגר CVE</h1>
+           </div>
           
           {/* Search Bar */}
           <div className="relative max-w-md">
@@ -231,14 +231,14 @@ const CVE = () => {
             return (
               <Card key={category.id} className="border-border">
                 <CardHeader className="pb-4">
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-xl text-foreground">
-                      {category.display_name}
-                    </CardTitle>
-                    <Badge variant="secondary" className="text-sm">
-                      {categorySystems.length} מערכות
-                    </Badge>
-                  </div>
+                   <div className="flex justify-between items-center flex-row-reverse">
+                     <Badge variant="secondary" className="text-sm">
+                       {categorySystems.length} מערכות
+                     </Badge>
+                     <CardTitle className="text-xl text-foreground">
+                       {category.display_name}
+                     </CardTitle>
+                   </div>
                   {category.description && (
                     <p className="text-muted-foreground text-sm">{category.description}</p>
                   )}
@@ -255,17 +255,8 @@ const CVE = () => {
                           key={system.id}
                           className="p-3 rounded-lg border border-border hover:border-primary/50 transition-colors group"
                         >
-                          <div className="flex justify-between items-start gap-2">
-                            <a
-                              href={system.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="font-medium text-foreground text-sm leading-tight hover:text-primary transition-colors cursor-pointer flex-1"
-                              title="לחץ לפתיחת הקישור"
-                            >
-                              {system.name}
-                            </a>
-                            <div className="flex gap-1">
+                           <div className="flex justify-between items-start gap-2 flex-row-reverse">
+                             <div className="flex gap-1">
                               {editMode && (
                                 <>
                                   <Button
@@ -304,9 +295,18 @@ const CVE = () => {
                                 title="פתח קישור CVE"
                               >
                                 <ExternalLink className="h-4 w-4" />
-                              </a>
-                            </div>
-                          </div>
+                               </a>
+                             </div>
+                             <a
+                               href={system.url}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="font-medium text-foreground text-sm leading-tight hover:text-primary transition-colors cursor-pointer flex-1 text-right"
+                               title="לחץ לפתיחת הקישור"
+                             >
+                               {system.name}
+                             </a>
+                           </div>
                         </div>
                       ))}
                     </div>
