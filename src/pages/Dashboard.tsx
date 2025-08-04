@@ -83,7 +83,6 @@ const Dashboard = () => {
     try {
       setLoading(true);
       
-      // Debug logging
       console.log("Dashboard fetchSurveys - User:", user?.id);
       console.log("Dashboard fetchSurveys - Profile:", profile);
       console.log("Dashboard fetchSurveys - Profile role:", profile?.role);
@@ -108,24 +107,29 @@ const Dashboard = () => {
       
       if (error) throw error;
       
-      // Fetch user profiles separately for each survey
-      const surveysWithProfiles = await Promise.all(
-        (data || []).map(async (survey: any) => {
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("first_name, last_name")
-            .eq("id", survey.user_id)
-            .single();
-          
-          return {
-            ...survey,
-            profiles: profileData
-          };
-        })
+      // Get unique user IDs
+      const userIds = [...new Set((data || []).map((survey: any) => survey.user_id))];
+      
+      // Fetch all profiles at once
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", userIds);
+      
+      // Create a map for quick lookup
+      const profilesMap = new Map(
+        (profilesData || []).map(profile => [profile.id, profile])
       );
+      
+      // Map surveys with their profiles
+      const surveysWithProfiles = (data || []).map((survey: any) => ({
+        ...survey,
+        profiles: profilesMap.get(survey.user_id) || null
+      }));
       
       setSurveys(surveysWithProfiles);
     } catch (error: any) {
+      console.error("Error fetching surveys:", error);
       toast({
         title: "שגיאה",
         description: "לא ניתן לטעון את הסקרים",
