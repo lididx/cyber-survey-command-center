@@ -141,21 +141,28 @@ const Dashboard = () => {
   };
   const updateSurveyStatus = async (surveyId: string, newStatus: string) => {
     try {
-      const {
-        error
-      } = await supabase.from("surveys").update({
-        status: newStatus as any
-      }).eq("id", surveyId);
+      const { error } = await supabase
+        .from("surveys")
+        .update({
+          status: newStatus as any
+        })
+        .eq("id", surveyId);
+      
       if (error) throw error;
-      setSurveys(prev => prev.map(survey => survey.id === surveyId ? {
-        ...survey,
-        status: newStatus
-      } : survey));
+      
+      // Update local state immediately
+      setSurveys(prev => prev.map(survey => 
+        survey.id === surveyId 
+          ? { ...survey, status: newStatus }
+          : survey
+      ));
+      
       toast({
         title: "הסטטוס עודכן בהצלחה",
         description: `הסטטוס עודכן ל: ${statusLabels[newStatus as keyof typeof statusLabels]}`
       });
     } catch (error: any) {
+      console.error("Status update error:", error);
       toast({
         title: "שגיאה",
         description: "לא ניתן לעדכן את הסטטוס",
@@ -186,6 +193,7 @@ const Dashboard = () => {
         new_value: today
       });
       
+      // Update local state immediately
       setSurveys(prev => prev.map(survey => 
         survey.id === surveyId 
           ? { ...survey, last_email_bounce_date: today }
@@ -197,6 +205,7 @@ const Dashboard = () => {
         description: "תאריך הקפצת המייל האחרון עודכן להיום"
       });
     } catch (error: any) {
+      console.error("Email bounce date update error:", error);
       toast({
         title: "שגיאה", 
         description: "לא ניתן לעדכן תאריך הקפצה",
@@ -206,18 +215,24 @@ const Dashboard = () => {
   };
   const archiveSurvey = async (surveyId: string) => {
     try {
-      const {
-        error
-      } = await supabase.from("surveys").update({
-        is_archived: true
-      }).eq("id", surveyId);
+      const { error } = await supabase
+        .from("surveys")
+        .update({
+          is_archived: true
+        })
+        .eq("id", surveyId);
+      
       if (error) throw error;
+      
+      // Update local state immediately
       setSurveys(prev => prev.filter(survey => survey.id !== surveyId));
+      
       toast({
         title: "הסקר הועבר לארכיון",
         description: "הסקר הועבר בהצלחה לארכיון"
       });
     } catch (error: any) {
+      console.error("Archive error:", error);
       toast({
         title: "שגיאה",
         description: "לא ניתן להעביר לארכיון",
@@ -230,15 +245,27 @@ const Dashboard = () => {
       return;
     }
     try {
-      const { error } = await supabase
+      // First delete related contacts
+      const { error: contactsError } = await supabase
+        .from("contacts")
+        .delete()
+        .eq("survey_id", surveyId);
+
+      if (contactsError) {
+        console.error("Error deleting contacts:", contactsError);
+        // Continue anyway as contacts might not exist
+      }
+
+      // Then delete the survey
+      const { error: surveyError } = await supabase
         .from("surveys")
         .delete()
         .eq("id", surveyId);
 
-      if (error) throw error;
+      if (surveyError) throw surveyError;
       
-      // Force refresh from database after successful deletion
-      await fetchSurveys();
+      // Update local state immediately
+      setSurveys(prev => prev.filter(survey => survey.id !== surveyId));
       
       toast({
         title: "הסקר נמחק",
@@ -476,7 +503,10 @@ const Dashboard = () => {
                              {/* משתמש יוצר - רק למנהלים ומנהלות */}
                              {profile && ['admin', 'manager'].includes(profile.role) && (
                                <div className="text-sm text-center">
-                                 {survey.profiles ? `${survey.profiles.first_name} ${survey.profiles.last_name}` : 'לא זמין'}
+                                 {survey.profiles 
+                                   ? `${survey.profiles.first_name || ''} ${survey.profiles.last_name || ''}`.trim() || 'לא זמין'
+                                   : 'לא זמין'
+                                 }
                                </div>
                              )}
                             
