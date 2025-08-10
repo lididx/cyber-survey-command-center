@@ -23,6 +23,28 @@ const Auth = () => {
   const location = useLocation();
   const { toast } = useToast();
 
+  const [connection, setConnection] = useState<'unknown' | 'online' | 'offline'>('unknown');
+  const [checkingConnection, setCheckingConnection] = useState(false);
+
+  const checkConnection = async () => {
+    setCheckingConnection(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true });
+
+      if (error && (error.name === 'TypeError' || String(error.message).includes('Failed to fetch'))) {
+        setConnection('offline');
+      } else {
+        setConnection('online');
+      }
+    } catch (err: any) {
+      setConnection('offline');
+    } finally {
+      setCheckingConnection(false);
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -65,9 +87,18 @@ const Auth = () => {
         });
       }
     } catch (error: any) {
+      const msg =
+        ((error?.message && String(error.message).includes("Failed to fetch")) || error?.name === "TypeError")
+          ? "שגיאת רשת: לא ניתן להתחבר לשרת. נסו לרענן את הדף או לבדוק את החיבור לאינטרנט."
+          : error?.status === 406
+          ? "שגיאה 406: אין נתונים זמינים או הרשאות. נסו להתחבר מחדש."
+          : error?.status === 400
+          ? "מייל או סיסמה שגויים. אנא נסו שוב."
+          : error?.message || "אירעה שגיאה לא צפויה.";
+
       toast({
         title: "שגיאה",
-        description: error.message,
+        description: msg,
         variant: "destructive",
       });
     } finally {
@@ -166,6 +197,15 @@ const Auth = () => {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "מעבד..." : isLogin ? "התחבר" : "הירשם"}
             </Button>
+
+            <div className="mt-2 text-xs text-muted-foreground flex items-center justify-between">
+              <span>
+                סטטוס חיבור: {connection === 'unknown' ? 'לא נבדק' : connection === 'online' ? 'מחובר' : 'לא זמין'}
+              </span>
+              <Button type="button" variant="outline" size="sm" onClick={checkConnection} disabled={checkingConnection}>
+                {checkingConnection ? 'בודק...' : 'בדיקת חיבור'}
+              </Button>
+            </div>
           </form>
 
         </CardContent>
