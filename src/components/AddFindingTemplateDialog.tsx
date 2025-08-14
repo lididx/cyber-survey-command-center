@@ -20,6 +20,7 @@ const formSchema = z.object({
   severity: z.enum(["נמוכה", "בינונית", "גבוהה", "קריטית"]),
   damage_potential: z.enum(["נמוך", "בינוני", "גבוה", "קריטי"]),
   tech_risk_level: z.enum(["נמוכה", "בינונית", "גבוהה", "קריטית"]),
+  test_findings: z.string().min(1, "יש להזין ממצאי בדיקה"),
   exposure_description: z.string().min(1, "יש להזין תיאור חשיפה"),
   recommendations: z.string().optional(),
 });
@@ -52,6 +53,7 @@ export function AddFindingTemplateDialog({
       severity: "בינונית",
       damage_potential: "בינוני",
       tech_risk_level: "בינונית",
+      test_findings: "",
       exposure_description: "",
       recommendations: "",
     },
@@ -63,6 +65,46 @@ export function AddFindingTemplateDialog({
       form.setValue("category_id", categoryId);
     }
   }, [categoryId, form]);
+
+  // Calculate tech risk level automatically based on severity and damage potential
+  const calculateTechRiskLevel = (severity: string, damagePotential: string): string => {
+    const severityMap: Record<string, number> = {
+      "נמוכה": 1,
+      "בינונית": 2,
+      "גבוהה": 3,
+    };
+    
+    const damageMap: Record<string, number> = {
+      "נמוך": 1,
+      "בינוני": 2,
+      "גבוה": 3,
+    };
+    
+    const severityLevel = severityMap[severity] || 2;
+    const damageLevel = damageMap[damagePotential] || 2;
+    
+    // Calculate according to the matrix
+    if (severityLevel === 3 && damageLevel === 3) return "קריטית"; // גבוהה × גבוה
+    if (severityLevel === 3 && damageLevel === 2) return "גבוהה"; // גבוהה × בינוני
+    if (severityLevel === 3 && damageLevel === 1) return "בינונית"; // גבוהה × נמוך
+    if (severityLevel === 2 && damageLevel === 3) return "גבוהה"; // בינונית × גבוה
+    if (severityLevel === 2 && damageLevel === 2) return "בינונית"; // בינונית × בינוני
+    if (severityLevel === 2 && damageLevel === 1) return "נמוכה"; // בינונית × נמוך
+    if (severityLevel === 1 && damageLevel === 3) return "בינונית"; // נמוכה × גבוה
+    if (severityLevel === 1 && damageLevel === 2) return "נמוכה"; // נמוכה × בינוני
+    if (severityLevel === 1 && damageLevel === 1) return "נמוכה"; // נמוכה × נמוך
+    
+    return "בינונית"; // default
+  };
+
+  // Watch for changes in severity and damage potential to auto-calculate tech risk
+  const watchedSeverity = form.watch("severity");
+  const watchedDamagePotential = form.watch("damage_potential");
+  
+  React.useEffect(() => {
+    const newTechRisk = calculateTechRiskLevel(watchedSeverity, watchedDamagePotential);
+    form.setValue("tech_risk_level", newTechRisk as any);
+  }, [watchedSeverity, watchedDamagePotential, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) return;
@@ -76,7 +118,7 @@ export function AddFindingTemplateDialog({
         severity: values.severity,
         damage_potential: values.damage_potential,
         tech_risk_level: values.tech_risk_level,
-        test_findings: "", // Remove test_findings field
+        test_findings: values.test_findings,
         exposure_description: values.exposure_description,
         recommendations: values.recommendations || "",
         created_by: user.id,
@@ -232,25 +274,38 @@ export function AddFindingTemplateDialog({
                 name="tech_risk_level"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>רמת הסיכון הטכנולוגית</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="בחר רמת סיכון" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="נמוכה">נמוכה</SelectItem>
-                        <SelectItem value="בינונית">בינונית</SelectItem>
-                        <SelectItem value="גבוהה">גבוהה</SelectItem>
-                        <SelectItem value="קריטית">קריטית</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>רמת הסיכון הטכנולוגית (חישוב אוטומטי)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        value={field.value} 
+                        readOnly 
+                        className="bg-muted" 
+                        placeholder="יחושב אוטומטית" 
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="test_findings"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ממצאי הבדיקה</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="תאר את ממצאי הבדיקה"
+                      className="min-h-[120px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
