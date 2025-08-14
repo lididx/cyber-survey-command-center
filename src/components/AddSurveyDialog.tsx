@@ -181,8 +181,13 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
   }, [open]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
+      <DialogContent 
+        className="max-w-4xl max-h-[90vh] overflow-y-auto" 
+        dir="rtl"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="text-right">הוסף סקר חדש</DialogTitle>
           <DialogDescription className="text-right">

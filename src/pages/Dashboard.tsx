@@ -286,24 +286,19 @@ const Dashboard = () => {
     }
   }, [profile]);
 
-  // Refetch surveys when component mounts or becomes visible
+  // Only refetch surveys on specific events, not on every focus/visibility change
   useEffect(() => {
-    const handleFocus = () => {
-      if (profile) {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'surveyUpdated' && profile) {
         fetchSurveys();
+        localStorage.removeItem('surveyUpdated');
       }
     };
 
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && profile) {
-        fetchSurveys();
-      }
-    });
-
+    window.addEventListener('storage', handleStorageChange);
+    
     return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleFocus);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, [profile]);
   const groupedSurveys = surveys.reduce((acc, survey) => {

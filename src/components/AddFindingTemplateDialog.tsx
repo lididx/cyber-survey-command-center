@@ -20,7 +20,6 @@ const formSchema = z.object({
   severity: z.enum(["נמוכה", "בינונית", "גבוהה", "קריטית"]),
   damage_potential: z.enum(["נמוך", "בינוני", "גבוה", "קריטי"]),
   tech_risk_level: z.enum(["נמוכה", "בינונית", "גבוהה", "קריטית"]),
-  test_findings: z.string().min(1, "יש להזין ממצאי בדיקה"),
   exposure_description: z.string().min(1, "יש להזין תיאור חשיפה"),
   recommendations: z.string().optional(),
 });
@@ -53,7 +52,6 @@ export function AddFindingTemplateDialog({
       severity: "בינונית",
       damage_potential: "בינוני",
       tech_risk_level: "בינונית",
-      test_findings: "",
       exposure_description: "",
       recommendations: "",
     },
@@ -78,7 +76,7 @@ export function AddFindingTemplateDialog({
         severity: values.severity,
         damage_potential: values.damage_potential,
         tech_risk_level: values.tech_risk_level,
-        test_findings: values.test_findings,
+        test_findings: "", // Remove test_findings field
         exposure_description: values.exposure_description,
         recommendations: values.recommendations || "",
         created_by: user.id,
@@ -110,8 +108,13 @@ export function AddFindingTemplateDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
+      <DialogContent 
+        className="max-w-4xl max-h-[90vh] overflow-y-auto" 
+        dir="rtl"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>הוספת תבנית ממצא חדשה</DialogTitle>
         </DialogHeader>
@@ -248,24 +251,6 @@ export function AddFindingTemplateDialog({
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name="test_findings"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ממצאי הבדיקה</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="תאר את ממצאי הבדיקה"
-                      className="min-h-[120px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}

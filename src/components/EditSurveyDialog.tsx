@@ -295,8 +295,13 @@ const EditSurveyDialog = ({ open, onOpenChange, survey, onSuccess }: EditSurveyD
   if (!survey) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
+      <DialogContent 
+        className="max-w-4xl max-h-[90vh] overflow-y-auto" 
+        dir="rtl"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="text-right">עריכת סקר</DialogTitle>
           <DialogDescription className="text-right">
