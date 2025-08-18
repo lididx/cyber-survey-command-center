@@ -114,9 +114,9 @@ function SortableCategory({ category, onSelect, onDelete, isAdmin }: SortableCat
            </div>
          </CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground">{category.description}</p>
-      </CardContent>
+       <CardContent>
+         <p className="text-muted-foreground text-right">{category.description}</p>
+       </CardContent>
     </Card>
   );
 }
@@ -419,12 +419,12 @@ export default function FindingsTemplates() {
         ) : (
           <div dir="rtl">
             <div className="flex items-center gap-4 mb-6">
-              <Button 
-                variant="default" 
-                onClick={() => setSelectedCategory(null)}
-              >
-                ← חזרה לקטגוריות
-              </Button>
+               <Button 
+                 variant="default" 
+                 onClick={() => setSelectedCategory(null)}
+               >
+                 חזרה לקטגוריות ←
+               </Button>
               <h2 className="text-2xl font-semibold">{selectedCategoryData?.display_name}</h2>
             </div>
 
@@ -445,75 +445,75 @@ export default function FindingsTemplates() {
                      </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div>
-                         <div className="flex items-center justify-between mb-2 flex-row-reverse">
+                     <div>
+                          <div className="flex items-center justify-between mb-2 flex-row-reverse">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => copyToClipboard(template.test_description, "תיאור הבדיקה")}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <h4 className="font-semibold">תיאור הבדיקה:</h4>
+                        </div>
+                       <p className="text-muted-foreground text-right">{template.test_description}</p>
+                     </div>
+                    
+                     <div className="grid grid-cols-1 gap-4">
+                       <div className="flex items-center gap-2 flex-row-reverse">
+                         <Badge className={`${getSeverityColor(template.severity)} text-white`}>
+                           {template.severity}
+                         </Badge>
+                         <span className="font-medium">:סבירות</span>
+                       </div>
+                       <div className="flex items-center gap-2 flex-row-reverse">
+                         <Badge className={`${getSeverityColor(template.damage_potential)} text-white`}>
+                           {template.damage_potential}
+                         </Badge>
+                         <span className="font-medium">:פוטנציאל נזק</span>
+                       </div>
+                       <div className="flex items-center gap-2 flex-row-reverse">
+                         <Badge className={`${getSeverityColor(template.tech_risk_level)} text-white`}>
+                           {template.tech_risk_level}
+                         </Badge>
+                         <span className="font-medium">:רמת סיכון טכנולוגית</span>
+                       </div>
+                     </div>
+
+
+                     <div>
+                       <div className="flex items-center justify-between mb-2 flex-row-reverse">
                          <Button 
                            variant="outline" 
                            size="sm" 
-                           onClick={() => copyToClipboard(template.test_description, "תיאור הבדיקה")}
+                           onClick={() => copyToClipboard(template.exposure_description, "תיאור החשיפה / הסיכונים")}
                            className="h-8 w-8 p-0"
                          >
                            <Copy className="h-4 w-4" />
                          </Button>
-                         <h4 className="font-semibold">תיאור הבדיקה:</h4>
+                         <h4 className="font-semibold">תיאור החשיפה / הסיכונים:</h4>
                        </div>
-                      <p className="text-muted-foreground">{template.test_description}</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <span className="font-medium">סבירות: </span>
-                        <Badge className={`${getSeverityColor(template.severity)} text-white`}>
-                          {template.severity}
-                        </Badge>
-                      </div>
-                      <div>
-                        <span className="font-medium">פוטנציאל נזק: </span>
-                        <Badge className={`${getSeverityColor(template.damage_potential)} text-white`}>
-                          {template.damage_potential}
-                        </Badge>
-                      </div>
-                      <div>
-                        <span className="font-medium">רמת סיכון טכנולוגית: </span>
-                        <Badge className={`${getSeverityColor(template.tech_risk_level)} text-white`}>
-                          {template.tech_risk_level}
-                        </Badge>
-                      </div>
-                    </div>
-
-
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold">תיאור החשיפה / הסיכונים:</h4>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => copyToClipboard(template.exposure_description, "תיאור החשיפה / הסיכונים")}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <p className="text-muted-foreground whitespace-pre-wrap">{template.exposure_description}</p>
-                    </div>
+                       <p className="text-muted-foreground whitespace-pre-wrap text-right">{template.exposure_description}</p>
+                     </div>
 
                     {/* המלצות */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold">המלצות:</h4>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => copyToClipboard((template as any).recommendations || "אין המלצות", "המלצות")}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <p className="text-muted-foreground whitespace-pre-wrap">
-                        {(template as any).recommendations || "אין המלצות מוגדרות"}
-                      </p>
-                    </div>
+                     <div>
+                       <div className="flex items-center justify-between mb-2 flex-row-reverse">
+                         <Button 
+                           variant="outline" 
+                           size="sm" 
+                           onClick={() => copyToClipboard((template as any).recommendations || "אין המלצות", "המלצות")}
+                           className="h-8 w-8 p-0"
+                         >
+                           <Copy className="h-4 w-4" />
+                         </Button>
+                         <h4 className="font-semibold">המלצות:</h4>
+                       </div>
+                       <p className="text-muted-foreground whitespace-pre-wrap text-right">
+                         {(template as any).recommendations || "אין המלצות מוגדרות"}
+                       </p>
+                     </div>
                   </CardContent>
                 </Card>
               ))}
