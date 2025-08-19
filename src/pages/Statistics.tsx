@@ -68,7 +68,8 @@ const Statistics = () => {
     dateTo: null as Date | null,
     client: "all",
     status: "all",
-    searchTerm: ""
+    searchTerm: "",
+    surveyor: "all"
   });
 
   const statusLabels: Record<string, string> = {
@@ -180,10 +181,13 @@ const Statistics = () => {
     if (filters.status !== "all" && survey.status !== filters.status) {
       return false;
     }
-    if (filters.dateFrom && new Date(survey.created_at) < filters.dateFrom) {
+    if (filters.surveyor !== "all" && survey.user_id !== filters.surveyor) {
       return false;
     }
-    if (filters.dateTo && new Date(survey.created_at) > filters.dateTo) {
+    if (filters.dateFrom && survey.survey_date && new Date(survey.survey_date) < filters.dateFrom) {
+      return false;
+    }
+    if (filters.dateTo && survey.survey_date && new Date(survey.survey_date) > filters.dateTo) {
       return false;
     }
     return true;
@@ -249,6 +253,8 @@ const Statistics = () => {
           setFilters={setFilters}
           uniqueClients={uniqueClients}
           statusLabels={statusLabels}
+          userProfiles={userProfiles}
+          isManager={['admin', 'manager'].includes(profile?.role || '')}
         />
 
         {/* Charts Section */}

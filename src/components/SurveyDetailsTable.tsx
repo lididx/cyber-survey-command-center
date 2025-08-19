@@ -9,6 +9,7 @@ interface Survey {
   system_name: string;
   created_at: string;
   updated_at: string;
+  survey_date: string;
   status: string;
   user_id: string;
   clients: {
@@ -73,7 +74,7 @@ const SurveyDetailsTable = ({
               <TableRow>
                 <TableHead className="text-center">לקוח</TableHead>
                 <TableHead className="text-center">כותרת סקר</TableHead>
-                <TableHead className="text-center">תאריך פתיחה</TableHead>
+                <TableHead className="text-center">תאריך ביצוע הסקר</TableHead>
                 <TableHead className="text-center">סטטוס נוכחי</TableHead>
                 <TableHead className="text-center">ימים בסטטוס</TableHead>
                 {isAdmin && <TableHead className="text-center">בעל הסקר</TableHead>}
@@ -92,7 +93,7 @@ const SurveyDetailsTable = ({
                       {survey.system_name}
                     </TableCell>
                     <TableCell className="text-center">
-                      {new Date(survey.created_at).toLocaleDateString('he-IL')}
+                      {survey.survey_date ? new Date(survey.survey_date).toLocaleDateString('he-IL') : "לא נקבע"}
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge style={{

@@ -15,6 +15,14 @@ interface Filters {
   client: string;
   status: string;
   searchTerm: string;
+  surveyor: string;
+}
+
+interface UserProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  role: string;
 }
 
 interface StatisticsFiltersProps {
@@ -22,9 +30,11 @@ interface StatisticsFiltersProps {
   setFilters: (filters: Filters) => void;
   uniqueClients: string[];
   statusLabels: Record<string, string>;
+  userProfiles?: UserProfile[];
+  isManager?: boolean;
 }
 
-const StatisticsFilters = ({ filters, setFilters, uniqueClients, statusLabels }: StatisticsFiltersProps) => {
+const StatisticsFilters = ({ filters, setFilters, uniqueClients, statusLabels, userProfiles = [], isManager = false }: StatisticsFiltersProps) => {
   const updateFilter = (key: keyof Filters, value: any) => {
     setFilters({ ...filters, [key]: value });
   };
@@ -35,7 +45,8 @@ const StatisticsFilters = ({ filters, setFilters, uniqueClients, statusLabels }:
       dateTo: null,
       client: "all",
       status: "all",
-      searchTerm: ""
+      searchTerm: "",
+      surveyor: "all"
     });
   };
 
@@ -48,7 +59,7 @@ const StatisticsFilters = ({ filters, setFilters, uniqueClients, statusLabels }:
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${isManager ? 'lg:grid-cols-7' : 'lg:grid-cols-6'}`}>
           {/* Search */}
           <div className="space-y-2">
             <label className="text-sm font-medium">חיפוש טקסט</label>
@@ -61,7 +72,7 @@ const StatisticsFilters = ({ filters, setFilters, uniqueClients, statusLabels }:
 
           {/* Date From */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">מתאריך</label>
+            <label className="text-sm font-medium">מתאריך ביצוע</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -92,7 +103,7 @@ const StatisticsFilters = ({ filters, setFilters, uniqueClients, statusLabels }:
 
           {/* Date To */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">עד תאריך</label>
+            <label className="text-sm font-medium">עד תאריך ביצוע</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -152,6 +163,26 @@ const StatisticsFilters = ({ filters, setFilters, uniqueClients, statusLabels }:
               </SelectContent>
             </Select>
           </div>
+
+          {/* Surveyor - Only for Managers */}
+          {isManager && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">בעל הסקר</label>
+              <Select value={filters.surveyor} onValueChange={(value) => updateFilter('surveyor', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="בחר בודק" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">כל הבודקים</SelectItem>
+                  {userProfiles.map(user => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.first_name} {user.last_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Clear Filters */}
           <div className="space-y-2">
