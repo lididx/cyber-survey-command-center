@@ -490,19 +490,19 @@ export default function FindingsTemplates() {
                      </div>
                     
                      <div className="grid grid-cols-1 gap-4">
-                       <div className="flex items-center gap-2 flex-row-reverse">
+                       <div className="flex items-center gap-2 justify-end">
                          <Badge className={`${getSeverityColor(template.severity)} text-white`}>
                            {template.severity}
                          </Badge>
                          <span className="font-medium">:סבירות</span>
                        </div>
-                       <div className="flex items-center gap-2 flex-row-reverse">
+                       <div className="flex items-center gap-2 justify-end">
                          <Badge className={`${getSeverityColor(template.damage_potential)} text-white`}>
                            {template.damage_potential}
                          </Badge>
                          <span className="font-medium">:פוטנציאל נזק</span>
                        </div>
-                       <div className="flex items-center gap-2 flex-row-reverse">
+                       <div className="flex items-center gap-2 justify-end">
                          <Badge className={`${getSeverityColor(template.tech_risk_level)} text-white`}>
                            {template.tech_risk_level}
                          </Badge>
