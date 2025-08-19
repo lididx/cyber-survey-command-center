@@ -417,20 +417,49 @@ export default function FindingsTemplates() {
             </DndContext>
           </div>
         ) : (
-          <div dir="rtl">
-            <div className="flex items-center gap-4 mb-6">
-               <Button 
-                 variant="default" 
-                 onClick={() => setSelectedCategory(null)}
-               >
-                 חזרה לקטגוריות ←
-               </Button>
-              <h2 className="text-2xl font-semibold">{selectedCategoryData?.display_name}</h2>
+          <div dir="rtl" className="flex gap-6">
+            {/* Navigation sidebar */}
+            <div className="w-64 flex-shrink-0">
+              <Card className="sticky top-6">
+                <CardHeader>
+                  <CardTitle className="text-center">ניווט בממצאים</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {filteredTemplates.map((template, index) => (
+                      <Button
+                        key={template.id}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const element = document.getElementById(`template-${template.id}`);
+                          element?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="w-full text-right justify-start text-sm h-auto py-2 px-2"
+                      >
+                        <span className="truncate">{template.subject}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            <div className="grid gap-6">
-              {filteredTemplates.map((template) => (
-                <Card key={template.id}>
+            {/* Main content */}
+            <div className="flex-1">
+              <div className="flex items-center gap-4 mb-6">
+                <Button 
+                  variant="default" 
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  חזרה לקטגוריות ←
+                </Button>
+                <h2 className="text-2xl font-semibold">{selectedCategoryData?.display_name}</h2>
+              </div>
+
+              <div className="grid gap-8">
+                {filteredTemplates.map((template) => (
+                <Card key={template.id} id={`template-${template.id}`} className="border-r-4 border-r-primary shadow-md">
                   <CardHeader>
                      <CardTitle className="flex items-center justify-between flex-row-reverse">
                        <Button 
@@ -527,32 +556,33 @@ export default function FindingsTemplates() {
                     </p>
                   </CardContent>
                 </Card>
-              )}
+               )}
+              </div>
             </div>
           </div>
         )}
+
+        <AddFindingTemplateDialog
+          open={addTemplateDialogOpen}
+          onOpenChange={setAddTemplateDialogOpen}
+          categoryId={selectedCategory || ""}
+          categories={categories}
+          onSuccess={() => {
+            refetchTemplates();
+            setAddTemplateDialogOpen(false);
+          }}
+        />
+
+        <AddFindingCategoryDialog
+          open={addCategoryDialogOpen}
+          onOpenChange={setAddCategoryDialogOpen}
+          onSuccess={() => {
+            refetchCategories();
+            setAddCategoryDialogOpen(false);
+          }}
+        />
+        </div>
       </div>
-
-      <AddFindingTemplateDialog
-        open={addTemplateDialogOpen}
-        onOpenChange={setAddTemplateDialogOpen}
-        categoryId={selectedCategory || ""}
-        categories={categories}
-        onSuccess={() => {
-          refetchTemplates();
-          setAddTemplateDialogOpen(false);
-        }}
-      />
-
-      <AddFindingCategoryDialog
-        open={addCategoryDialogOpen}
-        onOpenChange={setAddCategoryDialogOpen}
-        onSuccess={() => {
-          refetchCategories();
-          setAddCategoryDialogOpen(false);
-        }}
-      />
-    </div>
     </Layout>
   );
 }

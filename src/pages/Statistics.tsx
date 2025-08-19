@@ -229,6 +229,16 @@ const Statistics = () => {
           statusLabels={statusLabels}
         />
 
+        {/* Filters */}
+        <StatisticsFilters
+          filters={filters}
+          setFilters={setFilters}
+          uniqueClients={uniqueClients}
+          statusLabels={statusLabels}
+          userProfiles={userProfiles}
+          isManager={['admin', 'manager'].includes(profile?.role || '')}
+        />
+
         {/* Survey Details Table */}
         <SurveyDetailsTable 
           surveys={filteredSurveys}
@@ -246,16 +256,6 @@ const Statistics = () => {
             userProfiles={userProfiles}
           />
         )}
-
-        {/* Filters */}
-        <StatisticsFilters
-          filters={filters}
-          setFilters={setFilters}
-          uniqueClients={uniqueClients}
-          statusLabels={statusLabels}
-          userProfiles={userProfiles}
-          isManager={['admin', 'manager'].includes(profile?.role || '')}
-        />
 
         {/* Charts Section */}
         <ChartsSection 
