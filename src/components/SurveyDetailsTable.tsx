@@ -93,7 +93,7 @@ const SurveyDetailsTable = ({
                       {survey.system_name}
                     </TableCell>
                     <TableCell className="text-center">
-                      {survey.survey_date ? new Date(survey.survey_date).toLocaleDateString('he-IL') : "לא נקבע"}
+                      {survey.survey_date ? new Date(survey.survey_date).toLocaleDateString('he-IL') : "לא נקבע תאריך"}
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge style={{

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LogOut, Archive, Home, Settings, BarChart3, Shield, FileText, ChevronDown, Key } from "lucide-react";
 import ChangePasswordDialog from "@/components/ChangePasswordDialog";
+import PersonalNotesButton from "@/components/PersonalNotesButton";
 interface LayoutProps {
   children: ReactNode;
 }
@@ -145,6 +146,9 @@ const Layout = ({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:px-[25px]">
         {children}
       </main>
+
+      {/* Personal Notes Button */}
+      <PersonalNotesButton />
 
       {/* Change Password Dialog */}
       <ChangePasswordDialog 

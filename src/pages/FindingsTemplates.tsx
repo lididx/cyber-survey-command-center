@@ -379,15 +379,6 @@ export default function FindingsTemplates() {
                <h1 className="text-3xl font-bold text-foreground">תבניות ממצאים</h1>
              </div>
             
-            <div className="relative mb-6">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="חיפוש בתבניות..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10"
-              />
-            </div>
           </div>
 
         {!selectedCategory ? (
@@ -489,60 +480,60 @@ export default function FindingsTemplates() {
                        <p className="text-muted-foreground text-right">{template.test_description}</p>
                      </div>
                     
-                     <div className="grid grid-cols-1 gap-4">
-                       <div className="flex items-center gap-2 justify-end">
-                         <Badge className={`${getSeverityColor(template.severity)} text-white`}>
-                           {template.severity}
-                         </Badge>
-                         <span className="font-medium">:סבירות</span>
-                       </div>
-                       <div className="flex items-center gap-2 justify-end">
-                         <Badge className={`${getSeverityColor(template.damage_potential)} text-white`}>
-                           {template.damage_potential}
-                         </Badge>
-                         <span className="font-medium">:פוטנציאל נזק</span>
-                       </div>
-                       <div className="flex items-center gap-2 justify-end">
-                         <Badge className={`${getSeverityColor(template.tech_risk_level)} text-white`}>
-                           {template.tech_risk_level}
-                         </Badge>
-                         <span className="font-medium">:רמת סיכון טכנולוגית</span>
-                       </div>
-                     </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-2 flex-row-reverse">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => copyToClipboard(template.exposure_description, "תיאור החשיפה / הסיכונים")}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <h4 className="font-semibold">תיאור החשיפה / הסיכונים:</h4>
+                        </div>
+                        <p className="text-muted-foreground whitespace-pre-wrap text-right">{template.exposure_description}</p>
+                      </div>
 
+                     {/* המלצות */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2 flex-row-reverse">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => copyToClipboard((template as any).recommendations || "אין המלצות", "המלצות")}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <h4 className="font-semibold">המלצות:</h4>
+                        </div>
+                        <p className="text-muted-foreground whitespace-pre-wrap text-right">
+                          {(template as any).recommendations || "אין המלצות מוגדרות"}
+                        </p>
+                      </div>
 
-                     <div>
-                       <div className="flex items-center justify-between mb-2 flex-row-reverse">
-                         <Button 
-                           variant="outline" 
-                           size="sm" 
-                           onClick={() => copyToClipboard(template.exposure_description, "תיאור החשיפה / הסיכונים")}
-                           className="h-8 w-8 p-0"
-                         >
-                           <Copy className="h-4 w-4" />
-                         </Button>
-                         <h4 className="font-semibold">תיאור החשיפה / הסיכונים:</h4>
-                       </div>
-                       <p className="text-muted-foreground whitespace-pre-wrap text-right">{template.exposure_description}</p>
-                     </div>
-
-                    {/* המלצות */}
-                     <div>
-                       <div className="flex items-center justify-between mb-2 flex-row-reverse">
-                         <Button 
-                           variant="outline" 
-                           size="sm" 
-                           onClick={() => copyToClipboard((template as any).recommendations || "אין המלצות", "המלצות")}
-                           className="h-8 w-8 p-0"
-                         >
-                           <Copy className="h-4 w-4" />
-                         </Button>
-                         <h4 className="font-semibold">המלצות:</h4>
-                       </div>
-                       <p className="text-muted-foreground whitespace-pre-wrap text-right">
-                         {(template as any).recommendations || "אין המלצות מוגדרות"}
-                       </p>
-                     </div>
+                      {/* רמות סיכון - מועבר לכאן אחרי תיאור החשיפה והמלצות */}
+                      <div className="grid grid-cols-1 gap-4 border-t pt-4">
+                        <div className="flex items-center gap-2 justify-end">
+                          <Badge className={`${getSeverityColor(template.severity)} text-white`}>
+                            {template.severity}
+                          </Badge>
+                          <span className="font-medium">:סבירות</span>
+                        </div>
+                        <div className="flex items-center gap-2 justify-end">
+                          <Badge className={`${getSeverityColor(template.damage_potential)} text-white`}>
+                            {template.damage_potential}
+                          </Badge>
+                          <span className="font-medium">:פוטנציאל נזק</span>
+                        </div>
+                        <div className="flex items-center gap-2 justify-end">
+                          <Badge className={`${getSeverityColor(template.tech_risk_level)} text-white`}>
+                            {template.tech_risk_level}
+                          </Badge>
+                          <span className="font-medium">:רמת סיכון טכנולוגית</span>
+                        </div>
+                      </div>
                   </CardContent>
                 </Card>
               ))}

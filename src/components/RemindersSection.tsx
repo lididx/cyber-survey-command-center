@@ -27,10 +27,12 @@ interface RemindersSectionProps {
 const RemindersSection = ({ surveys, systemSettings, statusLabels }: RemindersSectionProps) => {
   const { toast } = useToast();
 
-  // Get stuck or critical surveys
+  // Get stuck or critical surveys (exclude meeting_scheduled status)
   const criticalSurveys = surveys.filter(survey => {
     const daysSinceUpdate = Math.floor((Date.now() - new Date(survey.updated_at).getTime()) / (1000 * 60 * 60 * 24));
-    return daysSinceUpdate > systemSettings.stuck_survey_threshold_days && survey.status !== 'completed';
+    return daysSinceUpdate > systemSettings.stuck_survey_threshold_days && 
+           survey.status !== 'completed' && 
+           survey.status !== 'meeting_scheduled';
   });
 
   const handleSendReminder = (surveyId: string, systemName: string) => {
