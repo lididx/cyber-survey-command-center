@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Plus, FileText, FolderPlus, Copy, Shield, Database, User, Lock, Wifi, MessageSquare, AlertTriangle, Settings, Network, Server, Globe, Building } from "lucide-react";
 import { AddFindingTemplateDialog } from "@/components/AddFindingTemplateDialog";
 import { AddFindingCategoryDialog } from "@/components/AddFindingCategoryDialog";
+import { SortableTemplateButton } from "@/components/SortableTemplateButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
@@ -133,6 +134,7 @@ interface FindingTemplate {
   exposure_description: string;
   recommendations?: string;
   created_at: string;
+  order_index?: number;
 }
 
 const getSeverityColor = (severity: string) => {
@@ -191,6 +193,8 @@ export default function FindingsTemplates() {
   const [addTemplateDialogOpen, setAddTemplateDialogOpen] = useState(false);
   const [addCategoryDialogOpen, setAddCategoryDialogOpen] = useState(false);
   const [categoriesOrder, setCategoriesOrder] = useState<FindingCategory[]>([]);
+  const [templatesOrder, setTemplatesOrder] = useState<FindingTemplate[]>([]);
+  const [isEditingTemplateOrder, setIsEditingTemplateOrder] = useState(false);
   const { profile } = useAuth();
   const { toast } = useToast();
 
@@ -279,55 +283,99 @@ export default function FindingsTemplates() {
     if (over && active.id !== over.id) {
       console.log("Order change detected, updating...");
       
-      const oldIndex = categoriesOrder.findIndex((item) => item.id === active.id);
-      const newIndex = categoriesOrder.findIndex((item) => item.id === over.id);
-      
-      console.log("Moving from index", oldIndex, "to", newIndex);
-      
-      const newCategoriesOrder = arrayMove(categoriesOrder, oldIndex, newIndex);
-      console.log("New order:", newCategoriesOrder.map(c => ({ id: c.id, name: c.display_name })));
-
-      setCategoriesOrder(newCategoriesOrder);
-
-      // Save new order to database
-      try {
-        console.log("Saving order to database...");
+      // Check if we're dragging templates or categories
+      if (isEditingTemplateOrder && templatesOrder.some(t => t.id === active.id)) {
+        // Handle template reordering
+        const oldIndex = templatesOrder.findIndex((item) => item.id === active.id);
+        const newIndex = templatesOrder.findIndex((item) => item.id === over.id);
         
-        // Update each category with its new order_index
-        const updatePromises = newCategoriesOrder.map(async (category, index) => {
-          console.log(`Updating category ${category.display_name} to order_index ${index}`);
-          const { error } = await supabase
-            .from("findings_categories")
-            .update({ order_index: index })
-            .eq("id", category.id);
+        console.log("Moving template from index", oldIndex, "to", newIndex);
+        
+        const newTemplatesOrder = arrayMove(templatesOrder, oldIndex, newIndex);
+        setTemplatesOrder(newTemplatesOrder);
+
+        // Save new order to database
+        try {
+          const updatePromises = newTemplatesOrder.map(async (template, index) => {
+            const { error } = await supabase
+              .from("findings_templates")
+              .update({ order_index: index })
+              .eq("id", template.id);
+            
+            if (error) throw error;
+            return { success: true, id: template.id, index };
+          });
+
+          await Promise.all(updatePromises);
           
-          if (error) {
-            console.error(`Error updating category ${category.id}:`, error);
-            throw error;
-          }
-          return { success: true, id: category.id, index };
-        });
+          toast({
+            title: "סדר הממצאים נשמר",
+            description: "הסדר החדש נשמר במערכת",
+          });
 
-        await Promise.all(updatePromises);
-        console.log("All categories updated successfully");
-
-        toast({
-          title: "סדר הקטגוריות נשמר",
-          description: "הסדר החדש נשמר במערכת",
-        });
-
-        // Refetch to ensure consistency
-        refetchCategories();
+          refetchTemplates();
+          
+        } catch (error) {
+          console.error("Error saving template order:", error);
+          toast({
+            title: "שגיאה",
+            description: "אירעה שגיאה בשמירת הסדר",
+            variant: "destructive",
+          });
+          setTemplatesOrder(templates);
+        }
+      } else {
+        // Handle category reordering
+        const oldIndex = categoriesOrder.findIndex((item) => item.id === active.id);
+        const newIndex = categoriesOrder.findIndex((item) => item.id === over.id);
         
-      } catch (error) {
-        console.error("Error saving category order:", error);
-        toast({
-          title: "שגיאה",
-          description: "אירעה שגיאה בשמירת הסדר",
-          variant: "destructive",
-        });
-        // Revert to original order on error
-        setCategoriesOrder(categories);
+        console.log("Moving category from index", oldIndex, "to", newIndex);
+        
+        const newCategoriesOrder = arrayMove(categoriesOrder, oldIndex, newIndex);
+        console.log("New order:", newCategoriesOrder.map(c => ({ id: c.id, name: c.display_name })));
+
+        setCategoriesOrder(newCategoriesOrder);
+
+        // Save new order to database
+        try {
+          console.log("Saving order to database...");
+          
+          // Update each category with its new order_index
+          const updatePromises = newCategoriesOrder.map(async (category, index) => {
+            console.log(`Updating category ${category.display_name} to order_index ${index}`);
+            const { error } = await supabase
+              .from("findings_categories")
+              .update({ order_index: index })
+              .eq("id", category.id);
+            
+            if (error) {
+              console.error(`Error updating category ${category.id}:`, error);
+              throw error;
+            }
+            return { success: true, id: category.id, index };
+          });
+
+          await Promise.all(updatePromises);
+          console.log("All categories updated successfully");
+
+          toast({
+            title: "סדר הקטגוריות נשמר",
+            description: "הסדר החדש נשמר במערכת",
+          });
+
+          // Refetch to ensure consistency
+          refetchCategories();
+          
+        } catch (error) {
+          console.error("Error saving category order:", error);
+          toast({
+            title: "שגיאה",
+            description: "אירעה שגיאה בשמירת הסדר",
+            variant: "destructive",
+          });
+          // Revert to original order on error
+          setCategoriesOrder(categories);
+        }
       }
     }
   };
@@ -337,6 +385,7 @@ export default function FindingsTemplates() {
       let query = supabase
         .from("findings_templates")
         .select("*")
+        .order("order_index", { ascending: true })
         .order("created_at", { ascending: false });
 
       if (selectedCategory) {
@@ -351,7 +400,12 @@ export default function FindingsTemplates() {
     enabled: !!selectedCategory,
   });
 
-  const filteredTemplates = templates.filter(template =>
+  useEffect(() => {
+    console.log("Templates updated:", templates);
+    setTemplatesOrder(templates);
+  }, [templates]);
+
+  const filteredTemplates = isEditingTemplateOrder ? templatesOrder : templates.filter(template =>
     template.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.test_description.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -410,28 +464,59 @@ export default function FindingsTemplates() {
         ) : (
           <div dir="rtl" className="flex gap-6">
             {/* Navigation sidebar */}
-            <div className="w-64 flex-shrink-0">
+            <div className="w-80 flex-shrink-0">
               <Card className="sticky top-6">
                 <CardHeader>
-                  <CardTitle className="text-center">ניווט בממצאים</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-center flex-1">ניווט בממצאים</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditingTemplateOrder(!isEditingTemplateOrder)}
+                      className="text-sm"
+                      title={isEditingTemplateOrder ? "סיים עריכה" : "עריכת סדר"}
+                    >
+                      {isEditingTemplateOrder ? "✓" : "✏️"}
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    {filteredTemplates.map((template, index) => (
-                      <Button
-                        key={template.id}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const element = document.getElementById(`template-${template.id}`);
-                          element?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="w-full text-right justify-start text-sm h-auto py-2 px-2"
-                      >
-                        <span className="truncate">{template.subject}</span>
-                      </Button>
-                    ))}
-                  </div>
+                  {isEditingTemplateOrder ? (
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext items={filteredTemplates.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                        <div className="space-y-2">
+                          {filteredTemplates.map((template, index) => (
+                            <SortableTemplateButton
+                              key={template.id}
+                              template={template}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                  ) : (
+                    <div className="space-y-2">
+                      {filteredTemplates.map((template, index) => (
+                        <Button
+                          key={template.id}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const element = document.getElementById(`template-${template.id}`);
+                            element?.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                          className="w-full text-right justify-start text-sm h-auto py-2 px-2"
+                          title={template.subject}
+                        >
+                          <span className="break-words text-wrap">• {template.subject}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -513,27 +598,27 @@ export default function FindingsTemplates() {
                         </p>
                       </div>
 
-                      {/* רמות סיכון - מועבר לכאן אחרי תיאור החשיפה והמלצות */}
-                      <div className="grid grid-cols-1 gap-4 border-t pt-4">
-                        <div className="flex items-center gap-2 justify-end">
-                          <Badge className={`${getSeverityColor(template.severity)} text-white`}>
-                            {template.severity}
-                          </Badge>
-                          <span className="font-medium">:סבירות</span>
-                        </div>
-                        <div className="flex items-center gap-2 justify-end">
-                          <Badge className={`${getSeverityColor(template.damage_potential)} text-white`}>
-                            {template.damage_potential}
-                          </Badge>
-                          <span className="font-medium">:פוטנציאל נזק</span>
-                        </div>
-                        <div className="flex items-center gap-2 justify-end">
-                          <Badge className={`${getSeverityColor(template.tech_risk_level)} text-white`}>
-                            {template.tech_risk_level}
-                          </Badge>
-                          <span className="font-medium">:רמת סיכון טכנולוגית</span>
-                        </div>
-                      </div>
+                       {/* רמות סיכון - מועבר לכאן אחרי תיאור החשיפה והמלצות */}
+                       <div className="grid grid-cols-1 gap-4 border-t pt-4">
+                         <div className="flex items-center gap-2 justify-end text-right">
+                           <Badge className={`${getSeverityColor(template.severity)} text-white`}>
+                             {template.severity}
+                           </Badge>
+                           <span className="font-medium">:סבירות</span>
+                         </div>
+                         <div className="flex items-center gap-2 justify-end text-right">
+                           <Badge className={`${getSeverityColor(template.damage_potential)} text-white`}>
+                             {template.damage_potential}
+                           </Badge>
+                           <span className="font-medium">:פוטנציאל נזק</span>
+                         </div>
+                         <div className="flex items-center gap-2 justify-end text-right">
+                           <Badge className={`${getSeverityColor(template.tech_risk_level)} text-white`}>
+                             {template.tech_risk_level}
+                           </Badge>
+                           <span className="font-medium">:רמת סיכון טכנולוגית</span>
+                         </div>
+                       </div>
                   </CardContent>
                 </Card>
               ))}

@@ -63,6 +63,7 @@ const Dashboard = () => {
     in_writing: "בכתיבה",
     completion_questions_with_admin: "שאלות השלמה מול מנהל מערכת",
     chen_review: "בבקרה של חן",
+    returned_from_review: "חזר מבדיקה",
     completed: "הסתיים"
   };
 
@@ -73,6 +74,7 @@ const Dashboard = () => {
     in_writing: "#FFB74D",
     completion_questions_with_admin: "#FB8C00",
     chen_review: "#8E24AA",
+    returned_from_review: "#D2691E",
     completed: "#388E3C"
   };
   const statusOptions = Object.entries(statusLabels).map(([value, label]) => ({

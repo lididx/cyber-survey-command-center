@@ -215,6 +215,7 @@ export type Database = {
           damage_potential: Database["public"]["Enums"]["damage_potential"]
           exposure_description: string
           id: string
+          order_index: number | null
           recommendations: string | null
           severity: Database["public"]["Enums"]["severity_level"]
           subject: string
@@ -230,6 +231,7 @@ export type Database = {
           damage_potential: Database["public"]["Enums"]["damage_potential"]
           exposure_description: string
           id?: string
+          order_index?: number | null
           recommendations?: string | null
           severity: Database["public"]["Enums"]["severity_level"]
           subject: string
@@ -245,6 +247,7 @@ export type Database = {
           damage_potential?: Database["public"]["Enums"]["damage_potential"]
           exposure_description?: string
           id?: string
+          order_index?: number | null
           recommendations?: string | null
           severity?: Database["public"]["Enums"]["severity_level"]
           subject?: string
@@ -463,6 +466,7 @@ export type Database = {
         | "completion_questions_with_admin"
         | "chen_review"
         | "completed"
+        | "returned_from_review"
       tech_risk_level: "נמוכה" | "בינונית" | "גבוהה" | "קריטית"
       user_role: "surveyor" | "manager" | "admin"
     }
@@ -603,6 +607,7 @@ export const Constants = {
         "completion_questions_with_admin",
         "chen_review",
         "completed",
+        "returned_from_review",
       ],
       tech_risk_level: ["נמוכה", "בינונית", "גבוהה", "קריטית"],
       user_role: ["surveyor", "manager", "admin"],

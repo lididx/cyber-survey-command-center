@@ -209,9 +209,8 @@ export function AddFindingTemplateDialog({
                 <FormItem>
                   <FormLabel>תיאור הבדיקה</FormLabel>
                   <FormControl>
-                    <Textarea
+                    <Input
                       placeholder="תאר את הבדיקה שבוצעה"
-                      className="min-h-[80px]"
                       {...field}
                     />
                   </FormControl>
@@ -225,11 +224,11 @@ export function AddFindingTemplateDialog({
                 control={form.control}
                 name="severity"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>סבירות</FormLabel>
+                  <FormItem className="text-right">
+                    <FormLabel className="text-right">סבירות</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="text-right">
                           <SelectValue placeholder="בחר סבירות" />
                         </SelectTrigger>
                       </FormControl>
@@ -249,11 +248,11 @@ export function AddFindingTemplateDialog({
                 control={form.control}
                 name="damage_potential"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>פוטנציאל הנזק</FormLabel>
+                  <FormItem className="text-right">
+                    <FormLabel className="text-right">פוטנציאל הנזק</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="text-right">
                           <SelectValue placeholder="בחר פוטנציאל נזק" />
                         </SelectTrigger>
                       </FormControl>
@@ -273,13 +272,13 @@ export function AddFindingTemplateDialog({
                 control={form.control}
                 name="tech_risk_level"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>רמת הסיכון הטכנולוגית (חישוב אוטומטי)</FormLabel>
+                  <FormItem className="text-right">
+                    <FormLabel className="text-right">רמת הסיכון הטכנולוגית (חישוב אוטומטי)</FormLabel>
                     <FormControl>
                       <Input 
                         value={field.value} 
                         readOnly 
-                        className="bg-muted" 
+                        className="bg-muted text-right" 
                         placeholder="יחושב אוטומטית" 
                       />
                     </FormControl>

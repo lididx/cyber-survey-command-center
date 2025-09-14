@@ -40,6 +40,7 @@ const statusLabels: Record<string, string> = {
   in_writing: "בכתיבה",
   completion_questions_with_admin: "שאלות השלמה מול מנהל מערכת",
   chen_review: "בבקרה של חן",
+  returned_from_review: "חזר מבדיקה",
   completed: "הסתיים"
 };
 
