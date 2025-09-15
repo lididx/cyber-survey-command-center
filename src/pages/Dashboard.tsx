@@ -430,12 +430,13 @@ const Dashboard = () => {
                                     borderColor: statusColors[survey.status]
                                   }}
                                   className="text-white border-0"
+                                  dir="rtl"
                                 >
                                   <SelectValue>
                                     {statusLabels[survey.status]}
                                   </SelectValue>
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent dir="rtl">
                                   {statusOptions.map(option => (
                                     <SelectItem key={option.value} value={option.value}>
                                       {option.label}

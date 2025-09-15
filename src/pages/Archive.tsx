@@ -5,8 +5,9 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RotateCcw, Trash2, ChevronDown, ChevronRight, Mail, MessageSquare } from "lucide-react";
+import { RotateCcw, Trash2, ChevronDown, ChevronRight, Mail, MessageSquare, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AuditLogDialog from "@/components/AuditLogDialog";
 
 interface Survey {
   id: string;
@@ -41,6 +42,7 @@ const Archive = () => {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
+  const [showAuditLogDialog, setShowAuditLogDialog] = useState(false);
 
   const statusLabels: Record<string, string> = {
     received: "התקבל",
@@ -273,12 +275,15 @@ const Archive = () => {
   return (
     <Layout>
       <div className="space-y-6" dir="rtl">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-foreground">ארכיון סקרים</h1>
-          <Badge variant="secondary" className="text-lg px-4 py-2">
-            {surveys.length} סקר{surveys.length !== 1 ? "ים" : ""} בארכיון
-          </Badge>
-        </div>
+          <div className="flex justify-between items-center">
+            <div className="flex gap-2">
+              <Button onClick={() => setShowAuditLogDialog(true)} variant="outline">
+                <History className="h-4 w-4 ml-2" />
+                צפייה ב-Audit Log
+              </Button>
+            </div>
+            <h1 className="text-3xl font-bold text-foreground">ארכיון סקרים</h1>
+          </div>
 
         {Object.keys(groupedSurveys).length === 0 ? (
           <Card className="bg-muted/20">
@@ -413,6 +418,11 @@ const Archive = () => {
           </div>
         )}
       </div>
+
+      <AuditLogDialog
+        open={showAuditLogDialog}
+        onOpenChange={setShowAuditLogDialog}
+      />
     </Layout>
   );
 };

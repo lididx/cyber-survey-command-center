@@ -109,7 +109,7 @@ function SortableCategory({ category, onSelect, onDelete, isAdmin }: SortableCat
                ×
              </Button>
            )}
-           <div className="flex items-center gap-2 flex-row-reverse">
+           <div className="flex items-center gap-2 flex-row-reverse text-right">
              <span>{category.display_name}</span>
              <IconComponent className="h-5 w-5" />
            </div>
