@@ -23,8 +23,7 @@ interface Client {
 }
 
 interface Contact {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
   phone: string;
   role: string;
@@ -51,7 +50,7 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
     status: "received" as const
   });
   const [contacts, setContacts] = useState<Contact[]>([
-    { firstName: "", lastName: "", email: "", phone: "", role: "" }
+    { fullName: "", email: "", phone: "", role: "" }
   ]);
 
   const statusOptions = [
@@ -83,7 +82,7 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
   };
 
   const addContact = () => {
-    setContacts([...contacts, { firstName: "", lastName: "", email: "", phone: "", role: "" }]);
+    setContacts([...contacts, { fullName: "", email: "", phone: "", role: "" }]);
   };
 
   const removeContact = (index: number) => {
@@ -123,16 +122,16 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
 
       if (surveyError) throw surveyError;
 
-      // Create contacts - only if they have at least first name
+      // Create contacts - only if they have at least full name
       const validContacts = contacts.filter(contact => 
-        contact.firstName.trim() || contact.lastName.trim() || contact.email.trim() || contact.phone.trim()
+        contact.fullName.trim() || contact.email.trim() || contact.phone.trim()
       );
 
       if (validContacts.length > 0) {
         const contactsData = validContacts.map(contact => ({
           survey_id: surveyData.id,
-          first_name: contact.firstName,
-          last_name: contact.lastName,
+          first_name: contact.fullName.split(' ')[0] || '',
+          last_name: contact.fullName.split(' ').slice(1).join(' ') || '',
           email: contact.email,
           phone: contact.phone,
           role: contact.role
@@ -159,7 +158,7 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
         receivedDate: "",
         status: "received"
       });
-      setContacts([{ firstName: "", lastName: "", email: "", phone: "", role: "" }]);
+      setContacts([{ fullName: "", email: "", phone: "", role: "" }]);
       
       onSuccess();
       onOpenChange(false);
@@ -185,8 +184,6 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
       <DialogContent 
         className="max-w-4xl max-h-[90vh] overflow-y-auto" 
         dir="rtl"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle className="text-right">הוסף סקר חדש</DialogTitle>
@@ -306,24 +303,16 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
                     )}
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>שם פרטי</Label>
-                      <Input
-                        value={contact.firstName}
-                        onChange={(e) => updateContact(index, "firstName", e.target.value)}
-                        dir="rtl"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>שם משפחה</Label>
-                      <Input
-                        value={contact.lastName}
-                        onChange={(e) => updateContact(index, "lastName", e.target.value)}
-                        dir="rtl"
-                      />
-                    </div>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="space-y-2 md:col-span-2">
+                       <Label>שם + משפחה</Label>
+                       <Input
+                         value={contact.fullName}
+                         onChange={(e) => updateContact(index, "fullName", e.target.value)}
+                         dir="rtl"
+                         className="md:w-1/2"
+                       />
+                     </div>
                     
                     <div className="space-y-2">
                       <Label>כתובת מייל</Label>

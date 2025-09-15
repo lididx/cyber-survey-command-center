@@ -97,14 +97,6 @@ const RemindersSection = ({ surveys, systemSettings, statusLabels }: RemindersSe
                       <div>עודכן לאחרונה: {new Date(survey.updated_at).toLocaleDateString('he-IL')}</div>
                     </div>
                     
-                    <Button
-                      size="sm"
-                      className="w-full"
-                      onClick={() => handleSendReminder(survey.id, survey.system_name)}
-                    >
-                      <Mail className="h-3 w-3 ml-1" />
-                      שלח מייל תזכורת
-                    </Button>
                   </div>
                 </CardContent>
               </Card>

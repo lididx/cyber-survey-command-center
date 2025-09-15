@@ -119,6 +119,41 @@ const CVE = () => {
     }
   };
 
+  const handleDeleteCategory = async (categoryId: string) => {
+    if (!confirm("האם אתה בטוח שברצונך למחוק את הקטגוריה? פעולה זו תמחק גם את כל המערכות בקטגוריה.")) {
+      return;
+    }
+
+    try {
+      // First delete all systems in this category
+      await supabase
+        .from("cve_systems")
+        .delete()
+        .eq("category_id", categoryId);
+
+      // Then delete the category
+      const { error } = await supabase
+        .from("cve_categories")
+        .delete()
+        .eq("id", categoryId);
+
+      if (error) throw error;
+
+      refetchCategories();
+      toast({
+        title: "הצלחה",
+        description: "הקטגוריה נמחקה בהצלחה",
+      });
+    } catch (error) {
+      console.error("Error deleting CVE category:", error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה במחיקת הקטגוריה",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleEditSystem = (system: CVESystem) => {
     setEditingSystem(system);
     setEditDialogOpen(true);
@@ -232,9 +267,26 @@ const CVE = () => {
               <Card key={category.id} className="border-border">
                 <CardHeader className="pb-4">
                    <div className="flex justify-between items-center flex-row-reverse">
-                     <Badge variant="secondary" className="text-sm">
-                       {categorySystems.length} מערכות
-                     </Badge>
+                     <div className="flex gap-1">
+                       <Badge variant="secondary" className="text-sm">
+                         {categorySystems.length} מערכות
+                       </Badge>
+                       {editMode && profile?.role === 'admin' && (
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={(e) => {
+                             e.preventDefault();
+                             e.stopPropagation();
+                             handleDeleteCategory(category.id);
+                           }}
+                           className="text-red-500 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+                           title="מחק קטגוריה"
+                         >
+                           <X className="h-3 w-3" />
+                         </Button>
+                       )}
+                     </div>
                      <CardTitle className="text-xl text-foreground">
                        {category.display_name}
                      </CardTitle>

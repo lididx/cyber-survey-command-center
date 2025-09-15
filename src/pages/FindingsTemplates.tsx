@@ -509,10 +509,10 @@ export default function FindingsTemplates() {
                             const element = document.getElementById(`template-${template.id}`);
                             element?.scrollIntoView({ behavior: 'smooth' });
                           }}
-                          className="w-full text-right justify-start text-sm h-auto py-2 px-2"
-                          title={template.subject}
-                        >
-                          <span className="break-words text-wrap">• {template.subject}</span>
+                           className="w-full text-right justify-start text-sm h-auto py-2 px-2 overflow-hidden"
+                           title={template.subject}
+                         >
+                           <span className="truncate text-right w-full">• {template.subject}</span>
                         </Button>
                       ))}
                     </div>
@@ -523,14 +523,26 @@ export default function FindingsTemplates() {
 
             {/* Main content */}
             <div className="flex-1">
-              <div className="flex items-center gap-4 mb-6">
-                <Button 
-                  variant="default" 
-                  onClick={() => setSelectedCategory(null)}
-                >
-                  חזרה לקטגוריות ←
-                </Button>
-                <h2 className="text-2xl font-semibold">{selectedCategoryData?.display_name}</h2>
+              <div className="flex items-center gap-4 mb-6 justify-between">
+                <div className="flex items-center gap-2">
+                  <Button onClick={() => setAddTemplateDialogOpen(true)} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    הוספת תבנית חדשה
+                  </Button>
+                  <Button onClick={() => setAddCategoryDialogOpen(true)} variant="outline" className="gap-2">
+                    <FolderPlus className="h-4 w-4" />
+                    הוספת קטגוריה
+                  </Button>
+                </div>
+                <div className="flex items-center gap-4">
+                  <h2 className="text-2xl font-semibold text-right">{selectedCategoryData?.display_name}</h2>
+                  <Button 
+                    variant="default" 
+                    onClick={() => setSelectedCategory(null)}
+                  >
+                    חזרה לקטגוריות ←
+                  </Button>
+                </div>
               </div>
 
               <div className="grid gap-8">
