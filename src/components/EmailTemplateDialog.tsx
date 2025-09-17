@@ -23,7 +23,12 @@ const EmailTemplateDialog = ({ open, onOpenChange, surveyName, clientName, conta
     requesting: userGender === "female" ? "מבקשת" : "מבקש"
   };
 
-  const contactNamesText = contactNames.length > 0 ? contactNames.join(", ") : "צוות המערכת";
+  // Extract first names only and determine if singular or plural
+  const firstNames = contactNames.length > 0 
+    ? contactNames.map(name => name.split(' ')[0]).filter(Boolean)
+    : [];
+  const contactNamesText = firstNames.length > 0 ? firstNames.join(", ") : "צוות המערכת";
+  const isPlural = firstNames.length > 1;
 
   const emailSubject = `קביעת סקר אפליקציה למערכת ${surveyName} - ${clientName}`;
 
@@ -31,7 +36,7 @@ const EmailTemplateDialog = ({ open, onOpenChange, surveyName, clientName, conta
 
 היי ${contactNamesText},
 
-שמי ${userFirstName} אני ${genderText.surveyor} אפליקציה מטעם חברת Citadel העובדת עם ${clientName}, קיבלתי את המייל שלכם על מנת לתאם מולכם סקר אפליקציה למערכת ${surveyName}.
+שמי ${userFirstName} אני ${genderText.surveyor} אפליקציה מטעם חברת Citadel העובדת עם ${clientName}, קיבלתי את המייל ${isPlural ? 'שלכם' : 'שלך'} על מנת לתאם ${isPlural ? 'מולכם' : 'מולך'} סקר אפליקציה למערכת ${surveyName}.
 
 להלן הנושאים עליהם נעבור במהלך סקר האפליקציה על המערכת:
 	•	תיאור המערכת (מידע כללי על המערכת הכולל גם גרסאות שפות תכנות)
@@ -48,12 +53,11 @@ const EmailTemplateDialog = ({ open, onOpenChange, surveyName, clientName, conta
 כמה דגשים: 
 1.	הסקר הינו סקר תשאולי בלבד.
 2.	במהלך הסקר אצטרך לקחת תצלומי מסך מתוך המערכת לכן יש צורך בגישה מלאה למערכת בזמן הפגישה.
-3.	במידה ואתם חושבים שיש גורמים נוספים שיכולים לעזור במהלך הפגישה אתם מוזמנים להוסיף אותם.
-4.	אשמח שתשלחו לי מספר תאריכים בהם אתם זמינים לביצוע הפגישה.
+3.	במידה ${isPlural ? 'ואתם' : 'ואתה'} ${isPlural ? 'חושבים' : 'חושב'} שיש גורמים נוספים שיכולים לעזור במהלך הפגישה ${isPlural ? 'אתם מוזמנים' : 'אתה מוזמן'} להוסיף אותם.
+4.	אשמח ${isPlural ? 'שתשלחו' : 'שתשלח'} לי מספר תאריכים בהם ${isPlural ? 'אתם זמינים' : 'אתה זמין'} לביצוע הפגישה.
 
 תודה רבה,
-${userFirstName}
-[פרטי יצירת קשר]`;
+${userFirstName}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(emailTemplate);

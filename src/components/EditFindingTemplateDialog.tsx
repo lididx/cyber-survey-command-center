@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
 
 const formSchema = z.object({
   category_id: z.string().min(1, "יש לבחור קטגוריה"),
@@ -21,33 +20,45 @@ const formSchema = z.object({
   damage_potential: z.enum(["נמוך", "בינוני", "גבוה", "קריטי"]),
   tech_risk_level: z.enum(["נמוכה", "בינונית", "גבוהה", "קריטית"]),
   test_findings: z.string().min(1, "יש להזין ממצאי בדיקה"),
-  exposure_description: z.string().min(1, "יש להזין תיאור חשיפה"),
+  exposure_description: z.string().min(1, "יש להזין תיאור חשיפה"),  
   recommendations: z.string().optional(),
 });
 
-interface AddFindingTemplateDialogProps {
+interface FindingTemplate {
+  id: string;
+  category_id: string;
+  subject: string;
+  test_description: string;
+  severity: string;
+  damage_potential: string;
+  tech_risk_level: string;
+  test_findings: string;
+  exposure_description: string;
+  recommendations?: string;
+}
+
+interface EditFindingTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  categoryId: string;
+  template: FindingTemplate | null;
   categories: Array<{ id: string; display_name: string }>;
   onSuccess: () => void;
 }
 
-export function AddFindingTemplateDialog({
+export function EditFindingTemplateDialog({
   open,
   onOpenChange,
-  categoryId,
+  template,
   categories,
   onSuccess,
-}: AddFindingTemplateDialogProps) {
+}: EditFindingTemplateDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      category_id: categoryId,
+      category_id: "",
       subject: "",
       test_description: "",
       severity: "בינונית",
@@ -59,12 +70,21 @@ export function AddFindingTemplateDialog({
     },
   });
 
-  // Update the category when categoryId changes and keep it persistent
-  React.useEffect(() => {
-    if (categoryId && categoryId !== form.getValues("category_id")) {
-      form.setValue("category_id", categoryId);
+  useEffect(() => {
+    if (template && open) {
+      form.reset({
+        category_id: template.category_id,
+        subject: template.subject,
+        test_description: template.test_description,
+        severity: template.severity as any,
+        damage_potential: template.damage_potential as any,
+        tech_risk_level: template.tech_risk_level as any,
+        test_findings: template.test_findings,
+        exposure_description: template.exposure_description,
+        recommendations: template.recommendations || "",
+      });
     }
-  }, [categoryId, form]);
+  }, [template, open, form]);
 
   // Calculate tech risk level automatically based on severity and damage potential
   const calculateTechRiskLevel = (severity: string, damagePotential: string): string => {
@@ -83,21 +103,19 @@ export function AddFindingTemplateDialog({
     const severityLevel = severityMap[severity] || 2;
     const damageLevel = damageMap[damagePotential] || 2;
     
-    // Calculate according to the matrix
-    if (severityLevel === 3 && damageLevel === 3) return "קריטית"; // גבוהה × גבוה
-    if (severityLevel === 3 && damageLevel === 2) return "גבוהה"; // גבוהה × בינוני
-    if (severityLevel === 3 && damageLevel === 1) return "בינונית"; // גבוהה × נמוך
-    if (severityLevel === 2 && damageLevel === 3) return "גבוהה"; // בינונית × גבוה
-    if (severityLevel === 2 && damageLevel === 2) return "בינונית"; // בינונית × בינוני
-    if (severityLevel === 2 && damageLevel === 1) return "נמוכה"; // בינונית × נמוך
-    if (severityLevel === 1 && damageLevel === 3) return "בינונית"; // נמוכה × גבוה
-    if (severityLevel === 1 && damageLevel === 2) return "נמוכה"; // נמוכה × בינוני
-    if (severityLevel === 1 && damageLevel === 1) return "נמוכה"; // נמוכה × נמוך
+    if (severityLevel === 3 && damageLevel === 3) return "קריטית";
+    if (severityLevel === 3 && damageLevel === 2) return "גבוהה";
+    if (severityLevel === 3 && damageLevel === 1) return "בינונית";
+    if (severityLevel === 2 && damageLevel === 3) return "גבוהה";
+    if (severityLevel === 2 && damageLevel === 2) return "בינונית";
+    if (severityLevel === 2 && damageLevel === 1) return "נמוכה";
+    if (severityLevel === 1 && damageLevel === 3) return "בינונית";
+    if (severityLevel === 1 && damageLevel === 2) return "נמוכה";
+    if (severityLevel === 1 && damageLevel === 1) return "נמוכה";
     
-    return "בינונית"; // default
+    return "בינונית";
   };
 
-  // Watch for changes in severity and damage potential to auto-calculate tech risk
   const watchedSeverity = form.watch("severity");
   const watchedDamagePotential = form.watch("damage_potential");
   
@@ -107,11 +125,11 @@ export function AddFindingTemplateDialog({
   }, [watchedSeverity, watchedDamagePotential, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!user) return;
+    if (!template) return;
 
     setIsSubmitting(true);
     try {
-      const insertData = {
+      const updateData = {
         category_id: values.category_id,
         subject: values.subject,
         test_description: values.test_description,
@@ -121,27 +139,27 @@ export function AddFindingTemplateDialog({
         test_findings: values.test_findings,
         exposure_description: values.exposure_description,
         recommendations: values.recommendations || "",
-        created_by: user.id,
       };
 
       const { error } = await supabase
         .from("findings_templates")
-        .insert(insertData);
+        .update(updateData)
+        .eq("id", template.id);
 
       if (error) throw error;
 
       toast({
-        title: "תבנית נוספה בהצלחה",
-        description: "התבנית החדשה נוספה למערכת",
+        title: "תבנית עודכנה בהצלחה",
+        description: "התבנית עודכנה במערכת",
       });
 
-      form.reset();
       onSuccess();
+      onOpenChange(false);
     } catch (error) {
-      console.error("Error adding template:", error);
+      console.error("Error updating template:", error);
       toast({
         title: "שגיאה",
-        description: "אירעה שגיאה בהוספת התבנית",
+        description: "אירעה שגיאה בעדכון התבנית",
         variant: "destructive",
       });
     } finally {
@@ -158,7 +176,7 @@ export function AddFindingTemplateDialog({
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>הוספת תבנית ממצא חדשה</DialogTitle>
+          <DialogTitle>עריכת תבנית ממצא</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -169,7 +187,7 @@ export function AddFindingTemplateDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>קטגוריה</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="בחר קטגוריה" />
@@ -226,7 +244,7 @@ export function AddFindingTemplateDialog({
                 render={({ field }) => (
                   <FormItem className="text-right">
                     <FormLabel className="text-right">סבירות</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="text-right">
                           <SelectValue placeholder="בחר סבירות" />
@@ -250,7 +268,7 @@ export function AddFindingTemplateDialog({
                 render={({ field }) => (
                   <FormItem className="text-right">
                     <FormLabel className="text-right">פוטנציאל הנזק</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="text-right">
                           <SelectValue placeholder="בחר פוטנציאל נזק" />
@@ -347,7 +365,7 @@ export function AddFindingTemplateDialog({
                 ביטול
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "מוסיף..." : "הוסף תבנית"}
+                {isSubmitting ? "מעדכן..." : "עדכן תבנית"}
               </Button>
             </div>
           </form>

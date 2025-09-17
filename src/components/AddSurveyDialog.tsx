@@ -46,7 +46,6 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
     clientId: "",
     systemDescription: "",
     surveyDate: "",
-    receivedDate: "",
     status: "received" as const
   });
   const [contacts, setContacts] = useState<Contact[]>([
@@ -114,7 +113,6 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
           system_name: formData.systemName,
           system_description: formData.systemDescription,
           survey_date: formData.surveyDate ? formData.surveyDate : null,
-          received_date: formData.receivedDate ? formData.receivedDate : null,
           status: formData.status
         })
         .select()
@@ -155,7 +153,6 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
         clientId: "",
         systemDescription: "",
         surveyDate: "",
-        receivedDate: "",
         status: "received"
       });
       setContacts([{ fullName: "", email: "", phone: "", role: "" }]);
@@ -235,15 +232,6 @@ const AddSurveyDialog = ({ open, onOpenChange, onSuccess }: AddSurveyDialogProps
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="receivedDate">תאריך קבלת הסקר</Label>
-              <Input
-                id="receivedDate"
-                type="date"
-                value={formData.receivedDate}
-                onChange={(e) => setFormData({ ...formData, receivedDate: e.target.value })}
-              />
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="status">סטטוס</Label>

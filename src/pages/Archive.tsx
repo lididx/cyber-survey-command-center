@@ -275,15 +275,7 @@ const Archive = () => {
   return (
     <Layout>
       <div className="space-y-6" dir="rtl">
-          <div className="flex justify-between items-center">
-            <div className="flex gap-2">
-              <Button onClick={() => setShowAuditLogDialog(true)} variant="outline">
-                <History className="h-4 w-4 ml-2" />
-                צפייה ב-Audit Log
-              </Button>
-            </div>
-            <h1 className="text-3xl font-bold text-foreground">ארכיון סקרים</h1>
-          </div>
+          <h1 className="text-3xl font-bold text-foreground">ארכיון סקרים</h1>
 
         {Object.keys(groupedSurveys).length === 0 ? (
           <Card className="bg-muted/20">
@@ -390,25 +382,33 @@ const Archive = () => {
                           </div>
                         )}
 
-                        {/* פעולות */}
-                        <div className="flex justify-center gap-1">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => restoreSurvey(survey.id)}
-                            className="h-6 px-2"
-                          >
-                            <RotateCcw className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deleteSurvey(survey.id)}
-                            className="text-destructive hover:text-destructive h-6 px-2"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
+                         {/* פעולות */}
+                         <div className="flex justify-center gap-1">
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => restoreSurvey(survey.id)}
+                             className="h-6 px-2"
+                           >
+                             <RotateCcw className="h-3 w-3" />
+                           </Button>
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => deleteSurvey(survey.id)}
+                             className="text-destructive hover:text-destructive h-6 px-2"
+                           >
+                             <Trash2 className="h-3 w-3" />
+                           </Button>
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => setShowAuditLogDialog(true)}
+                             className="h-6 px-2"
+                           >
+                             <History className="h-3 w-3" />
+                           </Button>
+                         </div>
                       </div>
                     ))}
                   </CardContent>

@@ -25,9 +25,10 @@ interface PersonalNote {
 interface PersonalNotesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onNotesChange?: () => void;
 }
 
-const PersonalNotesDialog = ({ open, onOpenChange }: PersonalNotesDialogProps) => {
+const PersonalNotesDialog = ({ open, onOpenChange, onNotesChange }: PersonalNotesDialogProps) => {
   const { profile } = useAuth();
   const { toast } = useToast();
   const [notes, setNotes] = useState<PersonalNote[]>([]);
@@ -84,6 +85,7 @@ const PersonalNotesDialog = ({ open, onOpenChange }: PersonalNotesDialogProps) =
 
       setNotes([data, ...notes]);
       setNewNote({ title: "", content: "" });
+      onNotesChange?.();
       toast({
         title: "הצלחה",
         description: "הערה נוספה בהצלחה",
@@ -115,6 +117,7 @@ const PersonalNotesDialog = ({ open, onOpenChange }: PersonalNotesDialogProps) =
 
       setNotes(notes.map(note => note.id === id ? data : note));
       setEditingId(null);
+      onNotesChange?.();
       toast({
         title: "הצלחה",
         description: "הערה עודכנה בהצלחה",
@@ -138,6 +141,7 @@ const PersonalNotesDialog = ({ open, onOpenChange }: PersonalNotesDialogProps) =
       if (error) throw error;
 
       setNotes(notes.filter(note => note.id !== id));
+      onNotesChange?.();
       toast({
         title: "הצלחה",
         description: "הערה נמחקה בהצלחה",

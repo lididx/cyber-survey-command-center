@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, FileText, FolderPlus, Copy, Shield, Database, User, Lock, Wifi, MessageSquare, AlertTriangle, Settings, Network, Server, Globe, Building } from "lucide-react";
+import { Search, Plus, FileText, FolderPlus, Copy, Shield, Database, User, Lock, Wifi, MessageSquare, AlertTriangle, Settings, Network, Server, Globe, Building, Edit, Trash2 } from "lucide-react";
 import { AddFindingTemplateDialog } from "@/components/AddFindingTemplateDialog";
 import { AddFindingCategoryDialog } from "@/components/AddFindingCategoryDialog";
+import { EditFindingTemplateDialog } from "@/components/EditFindingTemplateDialog";
 import { SortableTemplateButton } from "@/components/SortableTemplateButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -195,6 +196,8 @@ export default function FindingsTemplates() {
   const [categoriesOrder, setCategoriesOrder] = useState<FindingCategory[]>([]);
   const [templatesOrder, setTemplatesOrder] = useState<FindingTemplate[]>([]);
   const [isEditingTemplateOrder, setIsEditingTemplateOrder] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<FindingTemplate | null>(null);
+  const [editTemplateDialogOpen, setEditTemplateDialogOpen] = useState(false);
   const { profile } = useAuth();
   const { toast } = useToast();
 
@@ -248,6 +251,40 @@ export default function FindingsTemplates() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleDeleteTemplate = async (templateId: string) => {
+    if (!confirm("האם אתה בטוח שברצונך למחוק את התבנית?")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("findings_templates")
+        .delete()
+        .eq("id", templateId);
+
+      if (error) throw error;
+
+      toast({
+        title: "תבנית נמחקה בהצלחה",
+        description: "התבנית נמחקה מהמערכת",
+      });
+
+      refetchTemplates();
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה במחיקת התבנית",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditTemplate = (template: FindingTemplate) => {
+    setEditingTemplate(template);
+    setEditTemplateDialogOpen(true);
   };
 
   const isAdmin = profile?.role === "admin";
@@ -547,20 +584,40 @@ export default function FindingsTemplates() {
 
               <div className="grid gap-8">
                 {filteredTemplates.map((template) => (
-                <Card key={template.id} id={`template-${template.id}`} className="border-r-4 border-r-primary shadow-md">
-                  <CardHeader>
-                     <CardTitle className="flex items-center justify-between flex-row-reverse">
-                       <Button 
-                         variant="outline" 
-                         size="sm" 
-                         onClick={() => copyToClipboard(template.subject, "נושא הממצא")}
-                         className="h-8 w-8 p-0"
-                       >
-                         <Copy className="h-4 w-4" />
-                       </Button>
-                       <span className="text-right">{template.subject}</span>
-                     </CardTitle>
-                  </CardHeader>
+                 <Card key={template.id} id={`template-${template.id}`} className="border-r-4 border-r-primary shadow-md">
+                   <CardHeader>
+                      <CardTitle className="flex items-center justify-between flex-row-reverse">
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleDeleteTemplate(template.id)}
+                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                            title="מחק תבנית"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleEditTemplate(template)}
+                            className="h-8 w-8 p-0"
+                            title="ערוך תבנית"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => copyToClipboard(template.subject, "נושא הממצא")}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <span className="text-right">{template.subject}</span>
+                      </CardTitle>
+                   </CardHeader>
                   <CardContent className="space-y-4">
                      <div>
                           <div className="flex items-center justify-between mb-2 flex-row-reverse">
@@ -576,21 +633,35 @@ export default function FindingsTemplates() {
                         </div>
                        <p className="text-muted-foreground text-right">{template.test_description}</p>
                      </div>
-                    
                       <div>
                         <div className="flex items-center justify-between mb-2 flex-row-reverse">
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            onClick={() => copyToClipboard(template.exposure_description, "תיאור החשיפה / הסיכונים")}
+                            onClick={() => copyToClipboard(template.test_findings, "ממצאי הבדיקה")}
                             className="h-8 w-8 p-0"
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
-                          <h4 className="font-semibold">תיאור החשיפה / הסיכונים:</h4>
+                          <h4 className="font-semibold">ממצאי הבדיקה:</h4>
                         </div>
-                        <p className="text-muted-foreground whitespace-pre-wrap text-right">{template.exposure_description}</p>
+                        <p className="text-muted-foreground whitespace-pre-wrap text-right">{template.test_findings}</p>
                       </div>
+                     
+                       <div>
+                         <div className="flex items-center justify-between mb-2 flex-row-reverse">
+                           <Button 
+                             variant="outline" 
+                             size="sm" 
+                             onClick={() => copyToClipboard(template.exposure_description, "תיאור החשיפה / הסיכונים")}
+                             className="h-8 w-8 p-0"
+                           >
+                             <Copy className="h-4 w-4" />
+                           </Button>
+                           <h4 className="font-semibold">תיאור החשיפה / הסיכונים:</h4>
+                         </div>
+                         <p className="text-muted-foreground whitespace-pre-wrap text-right">{template.exposure_description}</p>
+                       </div>
 
                      {/* המלצות */}
                       <div>
@@ -611,26 +682,26 @@ export default function FindingsTemplates() {
                       </div>
 
                        {/* רמות סיכון - מועבר לכאן אחרי תיאור החשיפה והמלצות */}
-                       <div className="grid grid-cols-1 gap-4 border-t pt-4">
-                         <div className="flex items-center gap-2 justify-end text-right">
-                           <Badge className={`${getSeverityColor(template.severity)} text-white`}>
-                             {template.severity}
-                           </Badge>
-                           <span className="font-medium">:סבירות</span>
-                         </div>
-                         <div className="flex items-center gap-2 justify-end text-right">
-                           <Badge className={`${getSeverityColor(template.damage_potential)} text-white`}>
-                             {template.damage_potential}
-                           </Badge>
-                           <span className="font-medium">:פוטנציאל נזק</span>
-                         </div>
-                         <div className="flex items-center gap-2 justify-end text-right">
-                           <Badge className={`${getSeverityColor(template.tech_risk_level)} text-white`}>
-                             {template.tech_risk_level}
-                           </Badge>
-                           <span className="font-medium">:רמת סיכון טכנולוגית</span>
-                         </div>
-                       </div>
+                        <div className="grid grid-cols-1 gap-4 border-t pt-4">
+                          <div className="flex items-center gap-2 justify-start text-right">
+                            <span className="font-medium">סבירות:</span>
+                            <Badge className={`${getSeverityColor(template.severity)} text-white`}>
+                              {template.severity}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 justify-start text-right">
+                            <span className="font-medium">פוטנציאל נזק:</span>
+                            <Badge className={`${getSeverityColor(template.damage_potential)} text-white`}>
+                              {template.damage_potential}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 justify-start text-right">
+                            <span className="font-medium">רמת סיכון טכנולוגית:</span>
+                            <Badge className={`${getSeverityColor(template.tech_risk_level)} text-white`}>
+                              {template.tech_risk_level}
+                            </Badge>
+                          </div>
+                        </div>
                   </CardContent>
                 </Card>
               ))}
@@ -658,6 +729,17 @@ export default function FindingsTemplates() {
           onSuccess={() => {
             refetchTemplates();
             setAddTemplateDialogOpen(false);
+          }}
+        />
+
+        <EditFindingTemplateDialog
+          open={editTemplateDialogOpen}
+          onOpenChange={setEditTemplateDialogOpen}
+          template={editingTemplate}
+          categories={categories}
+          onSuccess={() => {
+            refetchTemplates();
+            setEditTemplateDialogOpen(false);
           }}
         />
 
