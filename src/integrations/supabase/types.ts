@@ -326,6 +326,88 @@ export type Database = {
         }
         Relationships: []
       }
+      survey_findings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          custom_text: string | null
+          damage_potential: Database["public"]["Enums"]["damage_potential"]
+          exposure_description: string
+          finding_template_id: string | null
+          id: string
+          is_custom: boolean
+          recommendations: string | null
+          severity: Database["public"]["Enums"]["severity_level"]
+          status: string
+          subject: string
+          survey_id: string
+          tech_risk_level: Database["public"]["Enums"]["tech_risk_level"]
+          test_description: string
+          test_findings: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          custom_text?: string | null
+          damage_potential: Database["public"]["Enums"]["damage_potential"]
+          exposure_description: string
+          finding_template_id?: string | null
+          id?: string
+          is_custom?: boolean
+          recommendations?: string | null
+          severity: Database["public"]["Enums"]["severity_level"]
+          status?: string
+          subject: string
+          survey_id: string
+          tech_risk_level: Database["public"]["Enums"]["tech_risk_level"]
+          test_description: string
+          test_findings: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          custom_text?: string | null
+          damage_potential?: Database["public"]["Enums"]["damage_potential"]
+          exposure_description?: string
+          finding_template_id?: string | null
+          id?: string
+          is_custom?: boolean
+          recommendations?: string | null
+          severity?: Database["public"]["Enums"]["severity_level"]
+          status?: string
+          subject?: string
+          survey_id?: string
+          tech_risk_level?: Database["public"]["Enums"]["tech_risk_level"]
+          test_description?: string
+          test_findings?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_findings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_findings_finding_template_id_fkey"
+            columns: ["finding_template_id"]
+            isOneToOne: false
+            referencedRelation: "findings_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_findings_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       survey_history: {
         Row: {
           created_at: string | null

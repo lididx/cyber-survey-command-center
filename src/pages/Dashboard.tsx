@@ -5,7 +5,7 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Mail, History, Archive, Trash2, Phone, MessageSquare, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Edit, Mail, History, Archive, Trash2, Phone, MessageSquare, ChevronDown, ChevronRight, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AddSurveyDialog from "@/components/AddSurveyDialog";
 import SurveyHistoryDialog from "@/components/SurveyHistoryDialog";
@@ -529,6 +529,10 @@ const Dashboard = () => {
                                 setShowHistoryDialog(true);
                               }}>
                                 <History className="h-3 w-3" />
+                              </Button>
+
+                              <Button variant="outline" size="sm" title="ממצאי סקר" onClick={() => window.location.href = `/survey-findings/${survey.id}`}>
+                                <FileText className="h-3 w-3" />
                               </Button>
                               
                               <Button variant="outline" size="sm" onClick={() => archiveSurvey(survey.id)} title="העבר לארכיון">
