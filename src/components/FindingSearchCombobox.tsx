@@ -98,10 +98,10 @@ export function FindingSearchCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between text-right"
+          className="w-full justify-end gap-2 text-right"
         >
-          <Search className="h-4 w-4" />
           {placeholder}
+          <Search className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[600px] p-0" align="start">

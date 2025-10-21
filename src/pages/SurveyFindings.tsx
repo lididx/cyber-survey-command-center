@@ -253,7 +253,7 @@ export default function SurveyFindings() {
       <div className="mb-6">
         <Button
           variant="ghost"
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate("/")}
           className="mb-4"
         >
           <ArrowRight className="ml-2 h-4 w-4" />
@@ -318,10 +318,10 @@ export default function SurveyFindings() {
             </div>
 
             <Select value={severityFilter} onValueChange={setSeverityFilter}>
-              <SelectTrigger>
+              <SelectTrigger dir="rtl" className="text-right">
                 <SelectValue placeholder="חומרה" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent dir="rtl" className="text-right">
                 <SelectItem value="all">כל החומרות</SelectItem>
                 <SelectItem value="קריטית">קריטית</SelectItem>
                 <SelectItem value="גבוהה">גבוהה</SelectItem>
@@ -331,10 +331,10 @@ export default function SurveyFindings() {
             </Select>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
+              <SelectTrigger dir="rtl" className="text-right">
                 <SelectValue placeholder="סטטוס" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent dir="rtl" className="text-right">
                 <SelectItem value="all">כל הסטטוסים</SelectItem>
                 <SelectItem value="open">פתוח</SelectItem>
                 <SelectItem value="in_progress">בטיפול</SelectItem>
