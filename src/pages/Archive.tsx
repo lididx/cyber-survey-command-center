@@ -329,10 +329,9 @@ const Archive = () => {
                 {expandedClients.has(clientName) && (
                   <CardContent className="space-y-0">
                     {/* כותרות עמודות */}
-                    <div className={`gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-center ${profile && ['admin', 'manager'].includes(profile.role) ? 'grid grid-cols-7' : 'grid grid-cols-6'}`}>
+                    <div className={`gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-center ${profile && ['admin', 'manager'].includes(profile.role) ? 'grid grid-cols-6' : 'grid grid-cols-5'}`}>
                       <div>שם המערכת</div>
                       <div>סטטוס</div>
-                      <div>תאריך קבלת הסקר</div>
                       <div>אנשי קשר</div>
                       <div>תאריך ביצוע הסקר</div>
                       {profile && ['admin', 'manager'].includes(profile.role) && (
@@ -342,7 +341,7 @@ const Archive = () => {
                     </div>
 
                     {clientSurveys.map((survey: any) => (
-                      <div key={survey.id} className={`gap-4 p-4 border-b hover:bg-muted/50 transition-colors items-center min-h-[80px] ${profile && ['admin', 'manager'].includes(profile.role) ? 'grid grid-cols-7' : 'grid grid-cols-6'}`}>
+                      <div key={survey.id} className={`gap-4 p-4 border-b hover:bg-muted/50 transition-colors items-center min-h-[80px] ${profile && ['admin', 'manager'].includes(profile.role) ? 'grid grid-cols-6' : 'grid grid-cols-5'}`}>
                         {/* שם המערכת */}
                         <div className="text-center">
                           <div className="font-medium text-sm">{survey.system_name}</div>
@@ -358,12 +357,6 @@ const Archive = () => {
                           </div>
                         </div>
 
-                        {/* תאריך קבלת הסקר */}
-                        <div className="text-center">
-                          <div className="text-sm text-muted-foreground">
-                            {survey.received_date ? new Date(survey.received_date).toLocaleDateString('he-IL') : "לא הוזן"}
-                          </div>
-                        </div>
 
                         {/* אנשי קשר */}
                         <div className="text-center">
