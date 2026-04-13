@@ -494,10 +494,21 @@ const Dashboard = () => {
                         : (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-6' : 'md:grid-cols-5');
                       
                       return (
-                        <div key={survey.id} className="border rounded-lg p-4 my-2">
+                        <div 
+                          key={survey.id} 
+                          className={`border rounded-lg p-4 my-2 transition-colors ${dragOverSurveyId === survey.id ? 'border-primary bg-primary/5' : ''} ${draggedSurveyId === survey.id ? 'opacity-50' : ''}`}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, survey.id)}
+                          onDragOver={(e) => handleDragOver(e, survey.id)}
+                          onDragEnd={handleDragEnd}
+                          onDrop={(e) => handleDrop(e, survey.id, clientName)}
+                        >
                           <div className={`grid grid-cols-1 gap-4 items-center min-h-[60px] ${gridCols}`}>
-                            {/* שם המערכת */}
-                            <div className="font-medium text-center">{survey.system_name}</div>
+                            {/* שם המערכת + drag handle */}
+                            <div className="font-medium text-center flex items-center justify-center gap-2">
+                              <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing flex-shrink-0" />
+                              {survey.system_name}
+                            </div>
                             
                             {/* סטטוס */}
                             <div>
