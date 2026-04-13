@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Mail, History, Archive, Trash2, Phone, MessageSquare, ChevronDown, ChevronRight, FileText } from "lucide-react";
+import { Plus, Edit, Mail, History, Archive, Trash2, Phone, MessageSquare, ChevronDown, ChevronRight, FileText, GripVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AddSurveyDialog from "@/components/AddSurveyDialog";
 import SurveyHistoryDialog from "@/components/SurveyHistoryDialog";
@@ -62,8 +62,11 @@ const Dashboard = () => {
     meeting_scheduled: "פגישה נקבעה",
     in_writing: "בכתיבה",
     completion_questions_with_admin: "שאלות השלמה מול מנהל מערכת",
+    completion_questions_with_vendor: "שאלות השלמה מול ספק המערכת",
     chen_review: "בבקרה של חן",
     returned_from_review: "חזר מבקרה - השלמה",
+    frozen: "מוקפא",
+    postponed_to_new_date: "ידחה למועד חדש",
     completed: "הסתיים"
   };
 
@@ -73,8 +76,11 @@ const Dashboard = () => {
     meeting_scheduled: "#81C784",
     in_writing: "#FFB74D",
     completion_questions_with_admin: "#FB8C00",
+    completion_questions_with_vendor: "#E65100",
     chen_review: "#8E24AA",
     returned_from_review: "#D2691E",
+    frozen: "#546E7A",
+    postponed_to_new_date: "#F06292",
     completed: "#388E3C"
   };
   const statusOptions = Object.entries(statusLabels).map(([value, label]) => ({

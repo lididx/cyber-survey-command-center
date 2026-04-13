@@ -60,7 +60,11 @@ const statusOptions = [
   { value: "meeting_scheduled", label: "פגישה נקבעה" },
   { value: "in_writing", label: "בכתיבה" },
   { value: "completion_questions_with_admin", label: "שאלות השלמה מול מנהל מערכת" },
+  { value: "completion_questions_with_vendor", label: "שאלות השלמה מול ספק המערכת" },
   { value: "chen_review", label: "בבקרה של חן" },
+  { value: "returned_from_review", label: "חזר מבקרה - השלמה" },
+  { value: "frozen", label: "מוקפא" },
+  { value: "postponed_to_new_date", label: "ידחה למועד חדש" },
   { value: "completed", label: "הסתיים" }
 ];
 

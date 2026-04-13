@@ -50,8 +50,11 @@ const Archive = () => {
     meeting_scheduled: "פגישה נקבעה",
     in_writing: "בכתיבה",
     completion_questions_with_admin: "שאלות השלמה מול מנהל מערכת",
+    completion_questions_with_vendor: "שאלות השלמה מול ספק המערכת",
     chen_review: "בבקרה של חן",
     returned_from_review: "חזר מבדיקה",
+    frozen: "מוקפא",
+    postponed_to_new_date: "ידחה למועד חדש",
     completed: "הסתיים"
   };
 
@@ -61,8 +64,11 @@ const Archive = () => {
     meeting_scheduled: "#81C784",
     in_writing: "#FFB74D",
     completion_questions_with_admin: "#FB8C00",
+    completion_questions_with_vendor: "#E65100",
     chen_review: "#8E24AA",
     returned_from_review: "#D2691E",
+    frozen: "#546E7A",
+    postponed_to_new_date: "#F06292",
     completed: "#388E3C"
   };
 
