@@ -385,6 +385,11 @@ const Dashboard = () => {
     acc[clientName].push(survey);
     return acc;
   }, {} as Record<string, Survey[]>);
+
+  // Sort surveys within each client by order_index
+  Object.keys(groupedSurveys).forEach(clientName => {
+    groupedSurveys[clientName].sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0));
+  });
   const toggleClientExpansion = (clientName: string) => {
     const newExpanded = new Set(expandedClients);
     if (newExpanded.has(clientName)) {
