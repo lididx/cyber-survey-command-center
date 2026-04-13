@@ -294,6 +294,74 @@ const Dashboard = () => {
     }
   }, [profile]);
 
+  const [draggedSurveyId, setDraggedSurveyId] = useState<string | null>(null);
+  const [dragOverSurveyId, setDragOverSurveyId] = useState<string | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, surveyId: string) => {
+    setDraggedSurveyId(surveyId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, surveyId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverSurveyId(surveyId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedSurveyId(null);
+    setDragOverSurveyId(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetSurveyId: string, clientName: string) => {
+    e.preventDefault();
+    if (!draggedSurveyId || draggedSurveyId === targetSurveyId) {
+      handleDragEnd();
+      return;
+    }
+
+    const clientSurveys = [...(groupedSurveys[clientName] || [])];
+    const draggedIndex = clientSurveys.findIndex(s => s.id === draggedSurveyId);
+    const targetIndex = clientSurveys.findIndex(s => s.id === targetSurveyId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      handleDragEnd();
+      return;
+    }
+
+    // Reorder
+    const [movedSurvey] = clientSurveys.splice(draggedIndex, 1);
+    clientSurveys.splice(targetIndex, 0, movedSurvey);
+
+    // Update order_index for all surveys in this client group
+    const updates = clientSurveys.map((survey, index) => ({
+      id: survey.id,
+      order_index: index
+    }));
+
+    // Update local state immediately
+    setSurveys(prev => {
+      const updated = [...prev];
+      updates.forEach(u => {
+        const idx = updated.findIndex(s => s.id === u.id);
+        if (idx !== -1) {
+          updated[idx] = { ...updated[idx], order_index: u.order_index } as any;
+        }
+      });
+      return updated;
+    });
+
+    // Persist to database
+    for (const u of updates) {
+      await supabase
+        .from("surveys")
+        .update({ order_index: u.order_index })
+        .eq("id", u.id);
+    }
+
+    handleDragEnd();
+  };
+
   // Only refetch surveys on specific events, not on every focus/visibility change
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
