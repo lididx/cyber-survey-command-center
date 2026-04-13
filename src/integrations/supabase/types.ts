@@ -453,7 +453,9 @@ export type Database = {
           id: string
           is_archived: boolean | null
           last_email_bounce_date: string | null
+          order_index: number | null
           received_date: string | null
+          sf_hours_logged: boolean | null
           status: Database["public"]["Enums"]["survey_status"]
           survey_date: string | null
           system_description: string | null
@@ -467,7 +469,9 @@ export type Database = {
           id?: string
           is_archived?: boolean | null
           last_email_bounce_date?: string | null
+          order_index?: number | null
           received_date?: string | null
+          sf_hours_logged?: boolean | null
           status?: Database["public"]["Enums"]["survey_status"]
           survey_date?: string | null
           system_description?: string | null
@@ -481,7 +485,9 @@ export type Database = {
           id?: string
           is_archived?: boolean | null
           last_email_bounce_date?: string | null
+          order_index?: number | null
           received_date?: string | null
+          sf_hours_logged?: boolean | null
           status?: Database["public"]["Enums"]["survey_status"]
           survey_date?: string | null
           system_description?: string | null
@@ -549,6 +555,9 @@ export type Database = {
         | "chen_review"
         | "completed"
         | "returned_from_review"
+        | "completion_questions_with_vendor"
+        | "frozen"
+        | "postponed_to_new_date"
       tech_risk_level: "נמוכה" | "בינונית" | "גבוהה" | "קריטית"
       user_role: "surveyor" | "manager" | "admin"
     }
@@ -690,6 +699,9 @@ export const Constants = {
         "chen_review",
         "completed",
         "returned_from_review",
+        "completion_questions_with_vendor",
+        "frozen",
+        "postponed_to_new_date",
       ],
       tech_risk_level: ["נמוכה", "בינונית", "גבוהה", "קריטית"],
       user_role: ["surveyor", "manager", "admin"],

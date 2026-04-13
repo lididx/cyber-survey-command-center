@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Mail, History, Archive, Trash2, Phone, MessageSquare, ChevronDown, ChevronRight, FileText } from "lucide-react";
+import { Plus, Edit, Mail, History, Archive, Trash2, Phone, MessageSquare, ChevronDown, ChevronRight, FileText, GripVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AddSurveyDialog from "@/components/AddSurveyDialog";
 import SurveyHistoryDialog from "@/components/SurveyHistoryDialog";
@@ -62,8 +62,11 @@ const Dashboard = () => {
     meeting_scheduled: "פגישה נקבעה",
     in_writing: "בכתיבה",
     completion_questions_with_admin: "שאלות השלמה מול מנהל מערכת",
+    completion_questions_with_vendor: "שאלות השלמה מול ספק המערכת",
     chen_review: "בבקרה של חן",
     returned_from_review: "חזר מבקרה - השלמה",
+    frozen: "מוקפא",
+    postponed_to_new_date: "ידחה למועד חדש",
     completed: "הסתיים"
   };
 
@@ -73,8 +76,11 @@ const Dashboard = () => {
     meeting_scheduled: "#81C784",
     in_writing: "#FFB74D",
     completion_questions_with_admin: "#FB8C00",
+    completion_questions_with_vendor: "#E65100",
     chen_review: "#8E24AA",
     returned_from_review: "#D2691E",
+    frozen: "#546E7A",
+    postponed_to_new_date: "#F06292",
     completed: "#388E3C"
   };
   const statusOptions = Object.entries(statusLabels).map(([value, label]) => ({
@@ -103,7 +109,7 @@ const Dashboard = () => {
         console.log("Dashboard fetchSurveys - Admin/Manager: showing all surveys");
       }
 
-      const { data, error } = await query.order("created_at", {
+      const { data, error } = await query.order("order_index", { ascending: true }).order("created_at", {
         ascending: false
       });
       
@@ -288,6 +294,74 @@ const Dashboard = () => {
     }
   }, [profile]);
 
+  const [draggedSurveyId, setDraggedSurveyId] = useState<string | null>(null);
+  const [dragOverSurveyId, setDragOverSurveyId] = useState<string | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, surveyId: string) => {
+    setDraggedSurveyId(surveyId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, surveyId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverSurveyId(surveyId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedSurveyId(null);
+    setDragOverSurveyId(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetSurveyId: string, clientName: string) => {
+    e.preventDefault();
+    if (!draggedSurveyId || draggedSurveyId === targetSurveyId) {
+      handleDragEnd();
+      return;
+    }
+
+    const clientSurveys = [...(groupedSurveys[clientName] || [])];
+    const draggedIndex = clientSurveys.findIndex(s => s.id === draggedSurveyId);
+    const targetIndex = clientSurveys.findIndex(s => s.id === targetSurveyId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      handleDragEnd();
+      return;
+    }
+
+    // Reorder
+    const [movedSurvey] = clientSurveys.splice(draggedIndex, 1);
+    clientSurveys.splice(targetIndex, 0, movedSurvey);
+
+    // Update order_index for all surveys in this client group
+    const updates = clientSurveys.map((survey, index) => ({
+      id: survey.id,
+      order_index: index
+    }));
+
+    // Update local state immediately
+    setSurveys(prev => {
+      const updated = [...prev];
+      updates.forEach(u => {
+        const idx = updated.findIndex(s => s.id === u.id);
+        if (idx !== -1) {
+          updated[idx] = { ...updated[idx], order_index: u.order_index } as any;
+        }
+      });
+      return updated;
+    });
+
+    // Persist to database
+    for (const u of updates) {
+      await supabase
+        .from("surveys")
+        .update({ order_index: u.order_index })
+        .eq("id", u.id);
+    }
+
+    handleDragEnd();
+  };
+
   // Only refetch surveys on specific events, not on every focus/visibility change
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -311,6 +385,11 @@ const Dashboard = () => {
     acc[clientName].push(survey);
     return acc;
   }, {} as Record<string, Survey[]>);
+
+  // Sort surveys within each client by order_index
+  Object.keys(groupedSurveys).forEach(clientName => {
+    groupedSurveys[clientName].sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0));
+  });
   const toggleClientExpansion = (clientName: string) => {
     const newExpanded = new Set(expandedClients);
     if (newExpanded.has(clientName)) {
@@ -415,10 +494,21 @@ const Dashboard = () => {
                         : (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-6' : 'md:grid-cols-5');
                       
                       return (
-                        <div key={survey.id} className="border rounded-lg p-4 my-2">
+                        <div 
+                          key={survey.id} 
+                          className={`border rounded-lg p-4 my-2 transition-colors ${dragOverSurveyId === survey.id ? 'border-primary bg-primary/5' : ''} ${draggedSurveyId === survey.id ? 'opacity-50' : ''}`}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, survey.id)}
+                          onDragOver={(e) => handleDragOver(e, survey.id)}
+                          onDragEnd={handleDragEnd}
+                          onDrop={(e) => handleDrop(e, survey.id, clientName)}
+                        >
                           <div className={`grid grid-cols-1 gap-4 items-center min-h-[60px] ${gridCols}`}>
-                            {/* שם המערכת */}
-                            <div className="font-medium text-center">{survey.system_name}</div>
+                            {/* שם המערכת + drag handle */}
+                            <div className="font-medium text-center flex items-center justify-center gap-2">
+                              <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing flex-shrink-0" />
+                              {survey.system_name}
+                            </div>
                             
                             {/* סטטוס */}
                             <div>
