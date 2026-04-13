@@ -109,7 +109,7 @@ const Dashboard = () => {
         console.log("Dashboard fetchSurveys - Admin/Manager: showing all surveys");
       }
 
-      const { data, error } = await query.order("created_at", {
+      const { data, error } = await query.order("order_index", { ascending: true }).order("created_at", {
         ascending: false
       });
       
