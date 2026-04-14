@@ -296,6 +296,19 @@ const Dashboard = () => {
     }
   }, [profile]);
 
+  const toggleSfHoursLogged = async (surveyId: string, currentValue: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("surveys")
+        .update({ sf_hours_logged: !currentValue })
+        .eq("id", surveyId);
+      if (error) throw error;
+      setSurveys(prev => prev.map(s => s.id === surveyId ? { ...s, sf_hours_logged: !currentValue } : s));
+    } catch (error: any) {
+      toast({ title: "שגיאה", description: "לא ניתן לעדכן סטטוס SF", variant: "destructive" });
+    }
+  };
+
   const [draggedSurveyId, setDraggedSurveyId] = useState<string | null>(null);
   const [dragOverSurveyId, setDragOverSurveyId] = useState<string | null>(null);
 
