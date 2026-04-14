@@ -479,12 +479,12 @@ const Dashboard = () => {
                       let colCount = 6; // base: name, status, contacts, date, SF, actions
                       if (hasCompletionQuestions) colCount++;
                       if (profile && ['admin', 'manager'].includes(profile.role)) colCount++;
-                      const gridCols = `md:grid-cols-${colCount}`;
+                      const gridStyle = { gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` };
                       
                       return (
                         <>
                           {/* כותרות טבלה */}
-                          <div className={`grid grid-cols-1 gap-3 p-3 bg-muted/50 rounded-lg font-semibold text-sm ${gridCols}`}>
+                          <div className="grid gap-3 p-3 bg-muted/50 rounded-lg font-semibold text-sm" style={gridStyle}>
                             <div className="text-center">שם המערכת</div>
                             <div className="text-center min-w-[160px]">סטטוס</div>
                             {hasCompletionQuestions && (
