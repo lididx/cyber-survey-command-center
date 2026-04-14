@@ -422,7 +422,7 @@ const Dashboard = () => {
       </Layout>;
   }
   return <Layout>
-      <div className="space-y-6 max-w-[1400px] mx-auto" dir="rtl">
+      <div className="space-y-6" dir="rtl">
          <div className="flex justify-between items-center flex-row-reverse">
            <h1 className="text-3xl font-bold text-foreground">דשבורד סקרים</h1>
            <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
