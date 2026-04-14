@@ -509,7 +509,7 @@ const Dashboard = () => {
                       let colCount = 6;
                       if (hasCompletionQuestions) colCount++;
                       if (profile && ['admin', 'manager'].includes(profile.role)) colCount++;
-                      const gridCols = `md:grid-cols-${colCount}`;
+                      const gridStyle = { gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` };
                       
                       return (
                         <div 
@@ -521,7 +521,7 @@ const Dashboard = () => {
                           onDragEnd={handleDragEnd}
                           onDrop={(e) => handleDrop(e, survey.id, clientName)}
                         >
-                          <div className={`grid grid-cols-1 gap-4 items-center min-h-[60px] ${gridCols}`}>
+                          <div className="grid gap-3 items-center min-h-[60px]" style={gridStyle}>
                             {/* שם המערכת + drag handle */}
                             <div className="font-medium text-center flex items-center justify-center gap-2">
                               <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing flex-shrink-0" />
