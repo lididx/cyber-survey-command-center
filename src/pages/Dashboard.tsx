@@ -5,7 +5,7 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Mail, History, Archive, Trash2, Phone, MessageSquare, ChevronDown, ChevronRight, FileText, GripVertical } from "lucide-react";
+import { Plus, Edit, Mail, History, Archive, Trash2, Phone, MessageSquare, ChevronDown, ChevronRight, FileText, GripVertical, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AddSurveyDialog from "@/components/AddSurveyDialog";
 import SurveyHistoryDialog from "@/components/SurveyHistoryDialog";
