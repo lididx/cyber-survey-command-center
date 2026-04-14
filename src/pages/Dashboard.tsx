@@ -13,6 +13,7 @@ import EmailTemplateDialog from "@/components/EmailTemplateDialog";
 import EditSurveyDialog from "@/components/EditSurveyDialog";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 interface Survey {
   id: string;
   system_name: string;
@@ -20,6 +21,7 @@ interface Survey {
   survey_date: string;
   received_date: string;
   last_email_bounce_date: string | null;
+  sf_hours_logged: boolean;
   status: string;
   client_id: string;
   user_id: string;
@@ -407,7 +409,7 @@ const Dashboard = () => {
       </Layout>;
   }
   return <Layout>
-      <div className="space-y-6" dir="rtl">
+      <div className="space-y-6 max-w-[1400px] mx-auto" dir="rtl">
          <div className="flex justify-between items-center flex-row-reverse">
            <h1 className="text-3xl font-bold text-foreground">דשבורד סקרים</h1>
            <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
