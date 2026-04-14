@@ -529,7 +529,7 @@ const Dashboard = () => {
                             </div>
                             
                             {/* סטטוס */}
-                            <div>
+                            <div className="min-w-[160px]">
                               <Select value={survey.status} onValueChange={value => updateSurveyStatus(survey.id, value)}>
                                 <SelectTrigger 
                                   style={{ 
@@ -604,6 +604,21 @@ const Dashboard = () => {
                             {/* תאריך ביצוע הסקר */}
                             <div className="text-sm text-center">
                               {new Date(survey.survey_date).toLocaleDateString("he-IL")}
+                            </div>
+                            
+                            {/* שעות SF */}
+                            <div className="flex items-center justify-center">
+                              <button
+                                onClick={() => toggleSfHoursLogged(survey.id, !!survey.sf_hours_logged)}
+                                className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors ${
+                                  survey.sf_hours_logged 
+                                    ? 'bg-green-100 border-green-500 text-green-600' 
+                                    : 'bg-red-50 border-red-300 text-red-400'
+                                }`}
+                                title={survey.sf_hours_logged ? "שעות SF דווחו" : "שעות SF לא דווחו"}
+                              >
+                                {survey.sf_hours_logged ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                              </button>
                             </div>
                             
                              {/* משתמש יוצר - רק למנהלים ומנהלות */}
