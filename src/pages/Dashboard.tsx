@@ -5,7 +5,7 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Mail, History, Archive, Trash2, Phone, MessageSquare, ChevronDown, ChevronRight, FileText, GripVertical } from "lucide-react";
+import { Plus, Edit, Mail, History, Archive, Trash2, Phone, MessageSquare, ChevronDown, ChevronRight, FileText, GripVertical, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AddSurveyDialog from "@/components/AddSurveyDialog";
 import SurveyHistoryDialog from "@/components/SurveyHistoryDialog";
@@ -13,6 +13,7 @@ import EmailTemplateDialog from "@/components/EmailTemplateDialog";
 import EditSurveyDialog from "@/components/EditSurveyDialog";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 interface Survey {
   id: string;
   system_name: string;
@@ -20,6 +21,7 @@ interface Survey {
   survey_date: string;
   received_date: string;
   last_email_bounce_date: string | null;
+  sf_hours_logged: boolean;
   status: string;
   client_id: string;
   user_id: string;
@@ -294,6 +296,19 @@ const Dashboard = () => {
     }
   }, [profile]);
 
+  const toggleSfHoursLogged = async (surveyId: string, currentValue: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("surveys")
+        .update({ sf_hours_logged: !currentValue })
+        .eq("id", surveyId);
+      if (error) throw error;
+      setSurveys(prev => prev.map(s => s.id === surveyId ? { ...s, sf_hours_logged: !currentValue } : s));
+    } catch (error: any) {
+      toast({ title: "שגיאה", description: "לא ניתן לעדכן סטטוס SF", variant: "destructive" });
+    }
+  };
+
   const [draggedSurveyId, setDraggedSurveyId] = useState<string | null>(null);
   const [dragOverSurveyId, setDragOverSurveyId] = useState<string | null>(null);
 
@@ -461,21 +476,23 @@ const Dashboard = () => {
                     {/* בדיקה אם יש סקרים עם סטטוס שאלות השלמה */}
                     {(() => {
                       const hasCompletionQuestions = clientSurveys.some(survey => survey.status === 'completion_questions_with_admin');
-                      const gridCols = hasCompletionQuestions 
-                        ? (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6')
-                        : (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-6' : 'md:grid-cols-5');
+                      let colCount = 6; // base: name, status, contacts, date, SF, actions
+                      if (hasCompletionQuestions) colCount++;
+                      if (profile && ['admin', 'manager'].includes(profile.role)) colCount++;
+                      const gridStyle = { gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` };
                       
                       return (
                         <>
                           {/* כותרות טבלה */}
-                          <div className={`grid grid-cols-1 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm ${gridCols}`}>
+                          <div className="grid gap-3 p-3 bg-muted/50 rounded-lg font-semibold text-sm" style={gridStyle}>
                             <div className="text-center">שם המערכת</div>
-                            <div className="text-center">סטטוס</div>
+                            <div className="text-center min-w-[160px]">סטטוס</div>
                             {hasCompletionQuestions && (
                               <div className="text-center">תאריך הקפצת מייל אחרון</div>
                             )}
                             <div className="text-center">אנשי קשר</div>
                             <div className="text-center">תאריך ביצוע הסקר</div>
+                            <div className="text-center">שעות SF</div>
                              {profile && ['admin', 'manager'].includes(profile.role) && (
                                <div className="text-center">משתמש יוצר</div>
                              )}
@@ -489,9 +506,10 @@ const Dashboard = () => {
                       const primaryContact = survey.contacts[0];
                       const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
                       const hasCompletionQuestions = clientSurveys.some(s => s.status === 'completion_questions_with_admin');
-                      const gridCols = hasCompletionQuestions 
-                        ? (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6')
-                        : (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-6' : 'md:grid-cols-5');
+                      let colCount = 6;
+                      if (hasCompletionQuestions) colCount++;
+                      if (profile && ['admin', 'manager'].includes(profile.role)) colCount++;
+                      const gridStyle = { gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` };
                       
                       return (
                         <div 
@@ -503,7 +521,7 @@ const Dashboard = () => {
                           onDragEnd={handleDragEnd}
                           onDrop={(e) => handleDrop(e, survey.id, clientName)}
                         >
-                          <div className={`grid grid-cols-1 gap-4 items-center min-h-[60px] ${gridCols}`}>
+                          <div className="grid gap-3 items-center min-h-[60px]" style={gridStyle}>
                             {/* שם המערכת + drag handle */}
                             <div className="font-medium text-center flex items-center justify-center gap-2">
                               <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing flex-shrink-0" />
@@ -511,7 +529,7 @@ const Dashboard = () => {
                             </div>
                             
                             {/* סטטוס */}
-                            <div>
+                            <div className="min-w-[160px]">
                               <Select value={survey.status} onValueChange={value => updateSurveyStatus(survey.id, value)}>
                                 <SelectTrigger 
                                   style={{ 
@@ -586,6 +604,21 @@ const Dashboard = () => {
                             {/* תאריך ביצוע הסקר */}
                             <div className="text-sm text-center">
                               {new Date(survey.survey_date).toLocaleDateString("he-IL")}
+                            </div>
+                            
+                            {/* שעות SF */}
+                            <div className="flex items-center justify-center">
+                              <button
+                                onClick={() => toggleSfHoursLogged(survey.id, !!survey.sf_hours_logged)}
+                                className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors ${
+                                  survey.sf_hours_logged 
+                                    ? 'bg-green-100 border-green-500 text-green-600' 
+                                    : 'bg-red-50 border-red-300 text-red-400'
+                                }`}
+                                title={survey.sf_hours_logged ? "שעות SF דווחו" : "שעות SF לא דווחו"}
+                              >
+                                {survey.sf_hours_logged ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                              </button>
                             </div>
                             
                              {/* משתמש יוצר - רק למנהלים ומנהלות */}
