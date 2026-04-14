@@ -476,21 +476,23 @@ const Dashboard = () => {
                     {/* בדיקה אם יש סקרים עם סטטוס שאלות השלמה */}
                     {(() => {
                       const hasCompletionQuestions = clientSurveys.some(survey => survey.status === 'completion_questions_with_admin');
-                      const gridCols = hasCompletionQuestions 
-                        ? (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6')
-                        : (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-6' : 'md:grid-cols-5');
+                      let colCount = 6; // base: name, status, contacts, date, SF, actions
+                      if (hasCompletionQuestions) colCount++;
+                      if (profile && ['admin', 'manager'].includes(profile.role)) colCount++;
+                      const gridCols = `md:grid-cols-${colCount}`;
                       
                       return (
                         <>
                           {/* כותרות טבלה */}
-                          <div className={`grid grid-cols-1 gap-4 p-3 bg-muted/50 rounded-lg font-semibold text-sm ${gridCols}`}>
+                          <div className={`grid grid-cols-1 gap-3 p-3 bg-muted/50 rounded-lg font-semibold text-sm ${gridCols}`}>
                             <div className="text-center">שם המערכת</div>
-                            <div className="text-center">סטטוס</div>
+                            <div className="text-center min-w-[160px]">סטטוס</div>
                             {hasCompletionQuestions && (
                               <div className="text-center">תאריך הקפצת מייל אחרון</div>
                             )}
                             <div className="text-center">אנשי קשר</div>
                             <div className="text-center">תאריך ביצוע הסקר</div>
+                            <div className="text-center">שעות SF</div>
                              {profile && ['admin', 'manager'].includes(profile.role) && (
                                <div className="text-center">משתמש יוצר</div>
                              )}
