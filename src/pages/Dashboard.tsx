@@ -506,9 +506,10 @@ const Dashboard = () => {
                       const primaryContact = survey.contacts[0];
                       const contactNames = survey.contacts.map(c => `${c.first_name} ${c.last_name}`);
                       const hasCompletionQuestions = clientSurveys.some(s => s.status === 'completion_questions_with_admin');
-                      const gridCols = hasCompletionQuestions 
-                        ? (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-7' : 'md:grid-cols-6')
-                        : (profile && ['admin', 'manager'].includes(profile.role) ? 'md:grid-cols-6' : 'md:grid-cols-5');
+                      let colCount = 6;
+                      if (hasCompletionQuestions) colCount++;
+                      if (profile && ['admin', 'manager'].includes(profile.role)) colCount++;
+                      const gridCols = `md:grid-cols-${colCount}`;
                       
                       return (
                         <div 
